@@ -1,0 +1,29 @@
+Mods.TigerLearning: {
+	ModName: Tiger的学习用模组
+	Items: {
+		ExampleItem: {
+			DisplayName: 示例物品
+			Tooltip: 示范用
+		}
+	}
+
+	NPCs: {
+		TestShooter.DisplayName: Test Shooter
+	}
+
+	Configs: {
+		ClientConfig: {
+			DisplayName: 客户端设置
+
+			Debug: {
+				Label: 开启Debug
+				Tooltip: ""
+			}
+
+			DebugTags: {
+				Label: Debug的标签
+				// Tooltip: ""
+			}
+		}
+	}
+}

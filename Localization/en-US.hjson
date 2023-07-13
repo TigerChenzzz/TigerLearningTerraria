@@ -1,0 +1,29 @@
+Mods.TigerLearning: {
+	ModName: Tiger's Learning Mod
+	Items: {
+		ExampleItem: {
+			DisplayName: Example Item
+			Tooltip: used for example
+		}
+	}
+
+	NPCs: {
+		TestShooter.DisplayName: Test Shooter
+	}
+
+	Configs: {
+		ClientConfig: {
+			DisplayName: Client Config
+
+			Debug: {
+				Label: Enable Debug
+				Tooltip: ""
+			}
+
+			DebugTags: {
+				Label: Debug Tags
+				// Tooltip: ""
+			}
+		}
+	}
+}

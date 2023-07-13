@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\tModLoader.targets" />
+  <PropertyGroup>
+    <AssemblyName>TigerLearning</AssemblyName>
+    <TargetFramework>net6.0</TargetFramework>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="tModLoader.CodeAssist" Version="0.1.*" />
+    <None Remove="**\*.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Common\GlobalItems\" />
+    <Folder Include="Common\GlobalNPCs\" />
+    <Folder Include="Common\GlobalProjectiles\" />
+    <Folder Include="Common\Players\" />
+    <Folder Include="Content\Buffs\" />
+    <Folder Include="Content\Items\" />
+    <Folder Include="Content\Projectiles\" />
+    <Folder Include="Content\Tiles\" />
+  </ItemGroup>
+</Project>
