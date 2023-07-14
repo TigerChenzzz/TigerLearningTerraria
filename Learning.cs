@@ -82,6 +82,7 @@ public class Learning {
 
     public class 添加物品 {
         public class ExamplePotion : ModItem {
+            public static string 参考 = "自定义套装和Buff https://fs49.org/2020/03/12/%e8%87%aa%e5%ae%9a%e4%b9%89%e5%a5%97%e8%a3%85%e5%92%8cbuff/";
             public override void SetStaticDefaults() {
                 CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 999;    //设置旅行模式研究所需物品
             }
@@ -133,6 +134,7 @@ public class Learning {
             }
         }
         public class ExampleAltUseItem : ModItem {
+            public static string 参考 = "双用途武器 https://fs49.org/2022/07/12/%e5%8f%8c%e7%94%a8%e9%80%94%e6%ad%a6%e5%99%a8/";
             /// <summary>
             /// 返回true就能右键使用了
             /// 然后当你按下右键的时候TR就会把 player.altFunctionUse 这个属性设置为2, 也就是右键
@@ -160,6 +162,7 @@ public class Learning {
             ";
         }
         public class 添加特技 : ModItem {
+            public static string 参考 = "给物品加特技 https://fs49.org/2020/03/13/%e7%bb%99%e7%89%a9%e5%93%81%e5%8a%a0%e7%89%b9%e6%8a%80/";
             /// <summary>
             /// 会在近战武器挥动的时候被触发
             /// </summary>
@@ -309,6 +312,7 @@ public class Learning {
     }
     public class 添加饰品 {
         public class ExampleAccessories : ModItem {
+            public static string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
             public static string 说明 = @"需额外准备与类名同名且在对应命名空间下的图片(.png)文件";
 
             public override void SetDefaults() {
@@ -367,6 +371,7 @@ public class Learning {
         }
         [AutoloadEquip(EquipType.Wings)]
         public class ExampleWings : ModItem {
+            public static string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
             public static string 说明 = @"需额外准备名字为 [类名]_Wings 且在对应命名空间下的图片(.png)文件(四帧)";
             public override void SetDefaults() {
                 Item.width = 22;
@@ -483,6 +488,7 @@ public class Learning {
         }
     }
     public class 添加套装 {
+        public static string 参考 = "自定义套装和Buff https://fs49.org/2020/03/12/%e8%87%aa%e5%ae%9a%e4%b9%89%e5%a5%97%e8%a3%85%e5%92%8cbuff/";
         public static string 简介 = @"
             添加头盔, 护甲和护腿需在对应ModItem子类上添加[AutoloadEquip(EquipType.{Head / Body / Legs})]
             在SetDefaults()中用Item.defense设置防御
@@ -512,6 +518,7 @@ public class Learning {
             icon.png        : 好像也不是必须的, 但最好有作为图标
         ";
         public class Build_txt {
+            public static string 参考 = "Mod基本信息 https://fs49.org/2020/03/09/mod%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af/";
             public static string 基本形式 = @"
                 [key1] = [value1]
                 [key2] = [value2]
@@ -532,12 +539,12 @@ public class Learning {
                 buildIgnore    : 将Mod源码编译成tmod文件的时候, 哪些文件(夹)是不需要放进tmod文件的, 这样能减小tmod文件的大小。includeSource为false的时候自动会忽略.cs文件   默认build.txt, .gitattributes, .gitignore, .git/, .vs/, .idea/, bin/, obj/,  Thumbs.db
                 includePDB     : 需不需要包括符号调试文件, 如果包含可以更多提供debug信息, 同时也允许使用VS进行Debug   默认FALSE
                 side           : 这个Mod是客户端Mod还是服务器端Mod     默认Both
-            "
-;
+            ";
         }
     }
     public class 创建Buff {
         public class ExampleBuff : ModBuff {
+            public static string 参考 = "自定义套装和Buff https://fs49.org/2020/03/12/%e8%87%aa%e5%ae%9a%e4%b9%89%e5%a5%97%e8%a3%85%e5%92%8cbuff/";
             public override void SetStaticDefaults() {
                 Main.buffNoSave[Type] = true;   //是否不保存, 默认false, 即默认保存
                 Main.debuff[Type] = false;      //判定这个buff算不算一个debuff, 如果设置为true会得到TR里对于debuff的限制, 比如无法取消
@@ -601,6 +608,7 @@ public class Learning {
             item.channel这个属性会让玩家在使用物品后进入channel状态, 可以用player.channel来检测
         ";
         public class ExampleChannelWeapon : ModItem {
+            public static string 参考 = "魔法导弹类武器 https://fs49.org/2022/01/22/%e9%ad%94%e6%b3%95%e5%af%bc%e5%bc%b9%e7%b1%bb%e6%ad%a6%e5%99%a8/";
             public override void SetDefaults() {
                 //...
                 Item.channel = true;
@@ -608,6 +616,7 @@ public class Learning {
             }
         }
         public class ExampleChannelProjectile : ModProjectile {
+            public static string 参考 = "魔法导弹类武器 https://fs49.org/2022/01/22/%e9%ad%94%e6%b3%95%e5%af%bc%e5%bc%b9%e7%b1%bb%e6%ad%a6%e5%99%a8/";
             public override void AI() {
                 #region 得到玩家, 若没有或已死亡等情况则直接让弹幕消失
                 Player player = null;
@@ -659,12 +668,14 @@ public class Learning {
             但是为了表示玩家的召唤物的状态, 我们还需要一个Buff以及一个自定义玩家属性来保证召唤物能正常工作以及消失
         ";
         public class ExampleMinionPlayer : ModPlayer {
+            public static string 参考 = "召唤武器实战：僚机(1.4再版) https://fs49.org/2022/09/28/%e5%8f%ac%e5%94%a4%e6%ad%a6%e5%99%a8%e5%ae%9e%e6%88%98%ef%bc%9a%e5%83%9a%e6%9c%ba%ef%bc%881-4%e5%86%8d%e7%89%88%ef%bc%89/";
             public bool exampleMinion;
             public override void ResetEffects() {
                 exampleMinion = false;
             }
         }
         public class ExampleMinionWeapon : ModItem {
+            public static string 参考 = ExampleMinionPlayer.参考;
             public override void SetDefaults() {
                 //...
                 Item.DamageType = DamageClass.Summon;
@@ -674,6 +685,7 @@ public class Learning {
             }
         }
         public class ExampleMinionProj : ModProjectile {
+            public static string 参考 = ExampleMinionPlayer.参考;
             public override void SetDefaults() {
                 Projectile.width = 16;
                 Projectile.height = 16;
@@ -719,6 +731,7 @@ public class Learning {
             }
         }
         public class ExampleMinionBuff : ModBuff {
+            public static string 参考 = ExampleMinionPlayer.参考;
             public override void SetStaticDefaults() {
                 Main.buffNoTimeDisplay[Type] = true;
             }
@@ -742,6 +755,7 @@ public class Learning {
             贴图命名格式: 坐骑名_Front.png 或者 坐骑名_Back.png
         ";
         public class ExampleMountItem : ModItem {
+            public static string 参考 = "从零开始的简单坐骑 https://fs49.org/2022/01/17/%e4%bb%8e%e9%9b%b6%e5%bc%80%e5%a7%8b%e7%9a%84%e7%ae%80%e5%8d%95%e5%9d%90%e9%aa%91/";
             public override void SetDefaults() {
                 //...
                 Item.mountType = ModContent.MountType<ExampleMount>();
@@ -749,6 +763,7 @@ public class Learning {
             }
         }
         public class ExampleMount : ModMount {
+            public static string 参考 = ExampleMountItem.参考;
             public override void SetStaticDefaults() {
                 MountData.spawnDust = DustID.Torch;     //召唤坐骑时的粒子特效
                 MountData.buff = ModContent.BuffType<ExampleMountBuff>();
@@ -813,6 +828,7 @@ public class Learning {
             }
         }
         public class ExampleMountBuff : ModBuff {
+            public static string 参考 = ExampleMountItem.参考;
             public override void SetStaticDefaults() {
                 //...
                 Main.buffNoTimeDisplay[Type] = true;
@@ -824,6 +840,7 @@ public class Learning {
             }
         }
         public class 简易自由悬浮坐骑 : ModMount {
+            public static string 参考 = ExampleMountItem.参考;
             public override void UpdateEffects(Player player) {
                 float verticalSpeedMax = 15f;
                 float verticalAcc = 0.5f;
@@ -866,6 +883,7 @@ public class Learning {
             物块的帧图无论是竖的还是横的, 都是可以的
         ";
         public class ExampleTileItem : ModItem {
+            public static string 参考 = "Kid: 物块属性讲解一: 基本物块 https://fs49.org/2022/08/26/kid%ef%bc%9a%e7%89%a9%e5%9d%97%e5%b1%9e%e6%80%a7%e8%ae%b2%e8%a7%a3%e4%b8%80%ef%bc%9a%e5%9f%ba%e6%9c%ac%e7%89%a9%e5%9d%97/";
             public override void SetDefaults() {
                 //...
                 Item.consumable = true;     //当然, 你想不消耗也行, 把consumable改成false就好了
@@ -875,6 +893,7 @@ public class Learning {
             }
         }
         public class ExampleTile : ModTile {
+            public static string 参考 = ExampleTileItem.参考 + "\nKid：物块属性讲解二：TileObjectData https://fs49.org/2022/10/16/kid%ef%bc%9a%e7%89%a9%e5%9d%97%e5%b1%9e%e6%80%a7%e8%ae%b2%e8%a7%a3%e4%ba%8c%ef%bc%9atileobjectdata/";
             public override void SetStaticDefaults() {
                 Main.tileSolid[Type] = true;            //是不是实心的, 能不能被玩家, 弹幕等穿透, 默认false
                 Main.tileSolidTop[Type] = true;         //顶端能否站人, 默认false
@@ -964,7 +983,7 @@ public class Learning {
     }
     public class 添加NPC {
         public class ExampleNPC : ModNPC {
-            public static string 参考 = "https://fs49.org/2022/01/18/%e4%bb%8e%e9%9b%b6%e5%bc%80%e5%a7%8b%e7%9a%84npc%e7%bc%96%e5%86%99/";
+            public static string 参考 = "从零开始的NPC编写 https://fs49.org/2022/01/18/%e4%bb%8e%e9%9b%b6%e5%bc%80%e5%a7%8b%e7%9a%84npc%e7%bc%96%e5%86%99/\n" + 城镇NPC.参考;
             public override void SetStaticDefaults() {
                 //名字的设置位于Mods.[ModName].NPCs.[NPCName].DisplayName
                 Main.npcFrameCount[Type] = 3;   //附带的贴图有几帧(纵向排列)
@@ -1127,7 +1146,7 @@ public class Learning {
 
         [AutoloadHead]
         public class 城镇NPC : ModNPC {
-            public static string 参考 = "https://fs49.org/2023/01/20/%e5%88%9b%e5%bb%ba%e4%b8%80%e4%b8%aa%e5%9f%ba%e7%a1%80%e5%9f%8e%e9%95%87npc-1-4-ver/";
+            public static string 参考 = "创建一个基础城镇NPC https://fs49.org/2023/01/20/%e5%88%9b%e5%bb%ba%e4%b8%80%e4%b8%aa%e5%9f%ba%e7%a1%80%e5%9f%8e%e9%95%87npc-1-4-ver/";
             public static string 分类 = @"
                 按入住方式: 常驻型，旅商型，宠物和其他型
                     旅商型: 参见 Example Mod 的Example Traveling Merchant
@@ -1493,6 +1512,7 @@ public class Learning {
         }
     }
     public class 绘制基础 {
+        public static string 参考 = "简单绘制 https://fs49.org/2021/12/22/%e7%ae%80%e5%8d%95%e7%bb%98%e5%88%b6/";
         public static string 世界坐标与屏幕坐标 = @"
             世界坐标是从整个世界的左上角算起的, 玩家和npc的位置都是基于世界坐标的
             但是屏幕坐标是基于屏幕左上角的
@@ -1525,6 +1545,7 @@ public class Learning {
             ModContent.Request<Texture2D>(texturePath).Frame(horizontalFrames: 1, verticalFrames: 1, frameX: 0, frameY: 0, sizeOffsetX: 0, sizeOffsetY: 0);
         }
         public static void DrawInSpriteBatch() {
+            string 参考 = "对数螺线: 帧图绘制与用绘制整出的花活 https://fs49.org/2021/12/26/%e5%af%b9%e6%95%b0%e8%9e%ba%e7%ba%bf-%e5%b8%a7%e5%9b%be%e7%bb%98%e5%88%b6%e4%b8%8e%e7%94%a8%e7%bb%98%e5%88%b6%e6%95%b4%e5%87%ba%e7%9a%84%e8%8a%b1%e6%b4%bb/";
             #region params
             SpriteBatch spriteBatch = default;
             Texture2D texture = default;
@@ -1576,6 +1597,7 @@ public class Learning {
 
         }
         public class 拖尾弹幕 : ModProjectile {
+            public static string 参考 = "TeddyTerri：使用绘制来实现影子拖尾 https://fs49.org/2022/03/28/teddyterri%ef%bc%9a%e4%bd%bf%e7%94%a8%e7%bb%98%e5%88%b6%e6%9d%a5%e5%ae%9e%e7%8e%b0%e5%bd%b1%e5%ad%90%e6%8b%96%e5%b0%be/";
             //此处为自定义储存方式, 同时还应储存旋转, spriteDirection等信息, 但此处没写, 因为只是演示, 也有官方的处理方法
             public Vector2[] oldPositions = new Vector2[15];    //顺便写下仿队列
             public int endIndex;
@@ -1649,6 +1671,7 @@ public class Learning {
 
     public class UI制作 {
         public class ExampleUI : UIState {
+            public static string 参考 = "UI的制作 https://fs49.org/2020/03/27/ui%e7%9a%84%e5%88%b6%e4%bd%9c/";
             public bool visible = false;
             public override void OnInitialize() {
                 #region 实例化一个面板，并且将其注册到UIState
@@ -1701,6 +1724,7 @@ public class Learning {
             }
         }
         public class ExampleUISystem : ModSystem {
+            public static string 参考 = ExampleUI.参考;
             public static ExampleUI exampleUI;
             public static UserInterface exampleUserInterface;     //UserInterface是用来托管UI事件的一个类
             public override void Load() {
@@ -1730,12 +1754,14 @@ public class Learning {
             }
         }
         public class ExampleUIPlayer : ModPlayer {
+            public static string 参考 = ExampleUI.参考;
             public override void OnEnterWorld() {
                 ExampleUISystem.exampleUI.visible = true;
             }
         }
 
         public class 进度条 : UIElement {
+            public static string 参考 = "UI部件示例：进度条 https://fs49.org/2020/03/31/ui%e9%83%a8%e4%bb%b6%e7%a4%ba%e4%be%8b%ef%bc%9a%e8%bf%9b%e5%ba%a6%e6%9d%a1/";
             private float _maxValue;
             private float _value;
             public float MaxValue {
@@ -1974,6 +2000,7 @@ public class Learning {
     }
     public class 泰拉瑞亚On {
         public class 重写伤害计算 : ModSystem {
+            public static string 参考 = "On的功能与应用 https://fs49.org/2021/10/28/on%e7%9a%84%e5%8a%9f%e8%83%bd%e4%b8%8e%e5%ba%94%e7%94%a8/";
             //其实来说这种只改一处的东西最好放在IL中(但我暂时不会)
             public static bool ChangePlayerGetDamage = true;    //一般为写在配置里
             public static bool ChangeNPCGetDamage = true;
@@ -2075,6 +2102,7 @@ public class Learning {
             }
         }
         public class 动态icon : ModSystem {
+            public static string 参考 = "使用反射实现动态Icon https://fs49.org/2022/01/18/%e4%bd%bf%e7%94%a8%e5%8f%8d%e5%b0%84%e5%ae%9e%e7%8e%b0%e5%8a%a8%e6%80%81icon/";
             //其实来说也可以直接写在UpdateUI里面(虽说Hook到DrawMenu确实更加精确)
             //所此处更应该说是对C#反射和泰拉瑞亚UI的应用
             int timer, iconFrame;
@@ -2132,6 +2160,7 @@ public class Learning {
             }
         }
         public class 给任意方法上钩子 {
+            public static string 参考 = "通过 HookEndpointManager 动态挂钩子 https://fs49.org/2022/11/20/%e9%80%9a%e8%bf%87-hookendpointmanager-%e5%8a%a8%e6%80%81%e6%8c%82%e9%92%a9%e5%ad%90/";
             public static Type 主角 = typeof(MonoModHooks);
             /// <summary>
             /// 代表原方法, 若为静态方法则没有<paramref name="self"/>
