@@ -726,7 +726,7 @@ static public partial class TigerUtils {
     /// <summary>
     /// 什么也不做, 返回false
     /// </summary>
-    public static bool Do(object expression) => false;
+    public static bool Do(params object[] expression) => false;
     public static T GetRight<T>(object left, T right) => right;
 #pragma warning restore IDE0060 // 删除未使用的参数
     /// <summary>
