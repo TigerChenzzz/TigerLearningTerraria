@@ -11,16 +11,19 @@
 #if Terraria143
 using IL.Terraria.GameContent.UI;
 #endif
+using Microsoft.Xna.Framework;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
 using ReLogic.Content;
 using ReLogic.Graphics;
+using ReLogic.OS;
 using System.Collections;
 using System.Data;
 using System.Linq;
 using System.Reflection;
 using Terraria.Audio;
+using Terraria.Cinematics;
 using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.GameContent;
@@ -28,8 +31,16 @@ using Terraria.GameContent.Bestiary;
 using Terraria.GameContent.Creative;
 using Terraria.GameContent.Events;
 using Terraria.GameContent.ItemDropRules;
+using Terraria.GameContent.Liquid;
 using Terraria.GameContent.Personalities;
+using Terraria.GameContent.Skies;
+using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
+using Terraria.GameInput;
+using Terraria.Graphics.Capture;
+using Terraria.Graphics.Effects;
+using Terraria.Graphics.Light;
+using Terraria.Initializers;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.Default;
 using Terraria.ModLoader.IO;
@@ -37,6 +48,9 @@ using Terraria.ModLoader.Utilities;
 using Terraria.ObjectData;
 using Terraria.UI;
 using Terraria.Utilities;
+using Terraria.ID;
+using System.Diagnostics;
+using System;
 
 namespace TigerLearning;
 
@@ -262,7 +276,6 @@ public class Learning {
             */
             recipe.AddIngredient(ItemID.DirtBlock, 10); //以10个土块作为材料
             recipe.AddTile(TileID.WorkBenches);     //此配方需要在工作台旁边
-            recipe.ReplaceResult(ModContent.ItemType<ModItem>());   //替换结果, 若在对应ModItem内书写则不需要此句
             recipe.Register();  //把这个合成表装进tr的系统里
             //可以连续书写: modItem.CreateRecipe().AddIngredient(ItemID.DirtBlock, 10).AddTile(TileID.WorkBenches).Register();
             #endregion
@@ -308,6 +321,12 @@ public class Learning {
         public static void 微光转化() {
             recipe.AddCustomShimmerResult(ItemID.DirtBlock, 10);
             recipe.HasShimmerCondition(Condition.Hardmode); //微光转化的条件, 若没有则不加
+        }
+        public static void 修改产物() {
+            recipe.ReplaceResult(ModContent.ItemType<ModItem>());   //替换结果, 虽说可以传入ModItem, 但是和传入itemID的效果是一样的
+            recipe.createItem.stack = 2;    //也可以做一些其它修改, 这些修改都会反应到产物上, 而且在制作出来前就会知道
+            //在制成时执行, 可以对item进行修改以修改产物, 但修改只会在制作出来后才能生效
+            recipe.AddOnCraftCallback((recipe, item, consumedItems, destinationStack) => { });
         }
     }
     public class 添加饰品 {
@@ -603,6 +622,25 @@ public class Learning {
         Main.NewTextMultiline("multilineInfo\nmultilineInfo line 2");   //一次输出多行
     }
 
+    public class 保存数据 {
+        public class ModItem保存数据 : ModItem {
+            //假设这是你需要保存的数据
+            public int dataToSave;
+            public override void SaveData(TagCompound tag) {
+                if(dataToSave != 0) {  //推荐在非默认值的情况下才存下来
+                    tag["dataToSave"] = dataToSave; //名字只需要保证在本物品下不重名即可
+                }
+            }
+            public override void LoadData(TagCompound tag) {
+                tag.TryGet("dataToSave", out dataToSave);   //这样即使不存在那也会让dataToSave为默认值
+
+                //如果想不把此类本身的默认值作为默认值(比如要把1作为默认值), 那么可以判TryGet的返回值
+                if(!tag.TryGet("dataToSave", out dataToSave)) {
+                    dataToSave = 1;     //需要和SaveData处对应
+                }
+            }
+        }
+    }
     public class 吟唱武器 {
         public static string 介绍 = @"
             item.channel这个属性会让玩家在使用物品后进入channel状态, 可以用player.channel来检测
@@ -2425,6 +2463,10 @@ public class Learning {
                 Show(item.canBePlacedInVanityRegardlessOfConditions);   //是否可不计条件的装在装饰栏位
 #endif
                 #endregion
+                #region 商店
+                Show(item.buyOnce);             //若为真, 则购买时会消耗商店中物品的stack, 消耗完时就不能买了
+                Show(item.shopCustomPrice);     //商店中的自定义价格, 但还会受NPC心情影响
+                #endregion
                 #region 其他
                 Item.buyPrice(0, 0, 50, 0);     //会直接转换为对应的铜币数
                 Item.sellPrice(0, 0, 10, 0);    //得到的值为同样参数的buyPrice的五倍
@@ -2448,13 +2490,32 @@ public class Learning {
             /// needs to manually sync, see Terraria.Player.QuickSpawnItem(Terraria.DataStructures.IEntitySource,System.Int32,System.Int32)
             /// source code for an example.
             /// </param>
-            public static void NewItemSync(IEntitySource source, Vector2 position, int itemId, int stack = 1, int prefixGiven = 0, bool noBroadcast = false) {
-                int itemIndex = Item.NewItem(source, position, itemId, stack, noBroadcast, prefixGiven);
+            public static void NewItemSync(IEntitySource source, Vector2 position, int itemId, int stack = 1, int prefixGiven = 0, bool noBroadcast = false, bool noGrabDelay = true) {
+                #region 标准的产生物品并同步
+                int itemIndex = Item.NewItem(source, position, itemId, stack, noBroadcast: false, prefixGiven, noGrabDelay);
+                //NewItemInner里如果是服务器就会在noBroadcast为false时同步, 在客户端就不会[恼]
                 if(Main.netMode == NetmodeID.MultiplayerClient) {
-                    NetMessage.SendData(MessageID.SyncItem, -1, -1, null, itemIndex, 1f);
+                    NetMessage.SendData(MessageID.SyncItem, -1, -1, null, itemIndex, noGrabDelay.ToInt());
                 }
+                #endregion
+                #region 在产生物品后做一些修改然后再同步
+                int itemIndex2 = Item.NewItem(source, position, itemId, stack, noBroadcast: true, prefixGiven, noGrabDelay);
+                Do(Main.item[itemIndex2]);  //在这里可以对此item做一些可以被同步的修改
+                NetMessage.SendData(MessageID.SyncItem, -1, -1, null, itemIndex2, noGrabDelay.ToInt());
+                #endregion
+                #region 在已有一个Item时让它产生在世界中
+                Item item = default;    //假设这是从另外一个地方得到的Item
+                int itemIndex3 = Item.NewItem(source, position, item, noBroadcast: false, noGrabDelay);
+                if(Main.netMode == NetmodeID.MultiplayerClient) {
+                    NetMessage.SendData(MessageID.SyncItem, -1, -1, null, itemIndex3, noGrabDelay.ToInt());
+                }
+                //实际上这样产生的物品是由item.Clone()克隆出来的Item
+                #endregion
 
+                #region 官方轮子
+                //在玩家处产生一个物品并自动同步
                 Main.LocalPlayer.QuickSpawnItem(source, itemId, stack);
+                #endregion
             }
         }
         public class Projectile_cls {
@@ -2554,6 +2615,8 @@ public class Learning {
                 Show(Main.player[Main.myPlayer]);   //玩家自己
                 Show(Main.LocalPlayer);             //玩家自己, 相当于上面那行的简写
                 Show(Main.mouseItem);               //鼠标上拿着的物品
+                Show(Main.CurrentFrameFlags.SleepingPlayersCount);  //正在睡觉的玩家数量
+                Show(Main.CurrentFrameFlags.ActivePlayersCount);    //玩家数量
                 #endregion
                 Show(Main.npc);                     //npc数组
                 Show(Main.projectile);              //弹幕数组
@@ -2649,6 +2712,986 @@ public class Learning {
                 Show(Main.maxTilesY - 200); //分隔岩石层和地狱(RockLayer and Underworld)    (地狱固定200格还是有点欠考虑...不过就这样了)
                 #endregion     
             }
+            public static void ShowMainUpdate() {
+                #region params
+                //请折叠此段
+                Main main = null;
+                Game _base = null;
+                GameTime gameTime = null;
+                bool IsEnginePreloaded = false;
+                Action OnEnginePreload = null;
+                bool _isDrawingOrUpdating = false;
+                bool GameAskedToQuit = false;
+                Action Main_OnTickForThirdPartySoftwareOnly = null;
+                bool _hasPendingNetmodeChange = false;
+                int _targetNetMode = 0;
+                float logoRotation = 0f;
+                float logoRotationSpeed = 0f;
+                float logoScale = 1f;
+                Func<bool> Main_CanPauseGame = null;
+                Action Main_OnTickForInternalCodeOnly = null;
+                double _partialWorldEventUpdates = 0.0;
+                Stopwatch _worldUpdateTimeTester = default;
+                float cameraLerp = 0f;
+                int cameraLerpTimer = 0;
+                int cameraLerpTimeToggle = 0;
+                #endregion
+                //Main.Update(GameTime gameTime)的完整逻辑
+                if(!/*main.*/IsEnginePreloaded) {    //Main.IsEnginePreloaded
+                    IsEnginePreloaded = true;
+                    /*Main.*/OnEnginePreload?.Invoke(); //Main.OnEnginePreload
+                }
+
+                if(!/*main.*/_isDrawingOrUpdating) {
+                    _isDrawingOrUpdating = true;
+                    Do(/*main.DoUpdate(ref gameTime)*/() => {
+                        Main.gameTimeCache = gameTime;
+                        if(Main.showSplash) {
+                            ShowMainUpdateAudio();
+                            Main.GlobalTimeWrappedHourly = (float)(gameTime.TotalGameTime.TotalSeconds % 3600.0);
+                            ChromaInitializer.UpdateEvents();
+                            Main.Chroma.Update(Main.GlobalTimeWrappedHourly);
+                            return;
+                        }
+
+                        PartySky.MultipleSkyWorkaroundFix = true;
+                        Main.LocalPlayer.cursorItemIconReversed = false;
+                        if(!Main.GlobalTimerPaused) {
+                            Main.GlobalTimeWrappedHourly = (float)(gameTime.TotalGameTime.TotalSeconds % 3600.0);
+                        }
+                        Do(/*main.UpdateCreativeGameModeOverride()*/() => {
+
+                        });
+                        Do(/*main.UpdateWorldPreparationState()*/() => {
+
+                        });
+		                if (Player.BlockInteractionWithProjectiles > 0 && !Main.mouseRight && Main.mouseRightRelease) {
+			                Player.BlockInteractionWithProjectiles--;
+                        }
+                        PlayerInput.SetZoom_UI();
+                        for (int num = Main.DelayedProcesses.Count - 1; num >= 0; num--) {
+			                IEnumerator enumerator = Main.DelayedProcesses[num];
+			                if (!enumerator.MoveNext())
+				                Main.DelayedProcesses.Remove(enumerator);
+		                }
+
+		                if (!Main.gameMenu || Main.menuMode != MenuID.FancyUI) {
+			                Main.MenuUI.SetState(null);
+                        }
+                        else {
+			                Main.InGameUI.SetState(null);
+                        }
+                        
+		                Main.CurrentInputTextTakerOverride = null;
+		                if(!Main.dedServ) {
+			                Main.AchievementAdvisor.Update();
+                        }
+
+		                PlayerInput.SetZoom_Unscaled();
+                        Do(/*main.MouseOversTryToClear()*/);
+		                PlayerInput.ResetInputsOnActiveStateChange();
+		                if(!Main.dedServ) {
+			                Main_OnTickForThirdPartySoftwareOnly?.Invoke(); //Main.OnTickForThirdPartySoftwareOnly
+                        }
+		                if (/*Main.*/_hasPendingNetmodeChange) {
+			                Main.netMode = /*Main.*/_targetNetMode;
+			                _hasPendingNetmodeChange = false;
+		                }
+
+		                if(CaptureManager.Instance.IsCapturing) {
+			                return;
+                        }
+
+		                if (Main.ActivePlayerFileData != null) {
+			                Main.ActivePlayerFileData.UpdatePlayTimer();
+                        }
+
+		                Netplay.UpdateInMainThread();
+		                Main.gameInactive = !_base.IsActive;
+		                if (Main.changeTheTitle) {
+			                Main.changeTheTitle = false;
+			                Do(/*main.SetTitle()*/);
+		                }
+
+		                Do(/*_worldUpdateTimeTester.Restart()*/);
+		                if(!WorldGen.gen) {
+			                WorldGen.destroyObject = false;
+                        }
+
+		                if(Main.gameMenu) {
+			                Main.mapFullscreen = false;
+                        }
+
+                        Do(/*main.UpdateSettingUnlocks()*/);
+		                if (Main.dedServ) {
+			                if (Main.dedServFPS) {
+				                Main.updatesCountedForFPS++;
+				                if (!Main.fpsTimer.IsRunning)
+					                Main.fpsTimer.Restart();
+
+				                if (Main.fpsTimer.ElapsedMilliseconds >= 1000) {
+					                Main.dedServCount1 += Main.updatesCountedForFPS;
+					                Main.dedServCount2++;
+					                float num2 = (float)Main.dedServCount1 / (float)Main.dedServCount2;
+					                Console.WriteLine(Main.updatesCountedForFPS + "  (" + num2 + ")");
+					                Main.updatesCountedForFPS = 0;
+					                Main.fpsTimer.Restart();
+				                }
+			                }
+			                else {
+				                if (Main.fpsTimer.IsRunning)
+					                Main.fpsTimer.Stop();
+
+				                Main.updatesCountedForFPS = 0;
+			                }
+		                }
+
+                        Do(/*LocalizationLoader.Update()*/);
+                        Do(/*main.DoUpdate_AutoSave()*/);
+		                if (!Main.dedServ) {
+			                ChromaInitializer.UpdateEvents();
+			                Main.Chroma.Update(Main.GlobalTimeWrappedHourly);
+			                if (Main.superFast) {
+				                _base.IsFixedTimeStep = false;
+				                Main.graphics.SynchronizeWithVerticalRetrace = false;
+			                }
+			                else {
+				                if (Main.FrameSkipMode == FrameSkipMode.Off || Main.FrameSkipMode == FrameSkipMode.Subtle) {
+					                if (_base.IsActive)
+						                _base.IsFixedTimeStep = false;
+					                else
+						                _base.IsFixedTimeStep = true;
+				                }
+				                else {
+					                _base.IsFixedTimeStep = true;
+					                Main.graphics.SynchronizeWithVerticalRetrace = true;
+				                }
+
+				                Main.graphics.SynchronizeWithVerticalRetrace = true;
+			                }
+
+			                if(Main.showSplash) {
+				                return;
+                            }
+
+			                Main.updatesCountedForFPS++;
+			                if (Main.fpsTimer.ElapsedMilliseconds >= 1000) {
+				                if ((float)Main.fpsCount >= 30f + 30f * Main.gfxQuality) {
+					                Main.gfxQuality += Main.gfxRate;
+					                Main.gfxRate += 0.005f;
+				                }
+				                else if ((float)Main.fpsCount < 29f + 30f * Main.gfxQuality) {
+					                Main.gfxRate = 0.01f;
+					                Main.gfxQuality -= 0.1f;
+				                }
+
+				                if (Main.gfxQuality < 0f)
+					                Main.gfxQuality = 0f;
+
+				                if (Main.gfxQuality > 1f)
+					                Main.gfxQuality = 1f;
+
+				                if (Main.maxQ && _base.IsActive) {
+					                Main.gfxQuality = 1f;
+					                Main.maxQ = false;
+				                }
+
+				                Main.updateRate = Main.uCount;
+				                Main.frameRate = Main.fpsCount;
+				                Main.fpsCount = 0;
+				                Main.fpsTimer.Restart();
+				                Main.updatesCountedForFPS = 0;
+				                Main.drawsCountedForFPS = 0;
+				                Main.uCount = 0;
+				                if (Main.gfxQuality < 0.8f)
+					                Main.mapTimeMax = (int)((1f - Main.gfxQuality) * 60f);
+				                else
+					                Main.mapTimeMax = 0;
+			                }
+
+			                if (Main.FrameSkipMode == FrameSkipMode.Off || Main.FrameSkipMode == FrameSkipMode.Subtle) {
+				                Main.UpdateTimeAccumulator += gameTime.ElapsedGameTime.TotalSeconds;
+				                if (Main.UpdateTimeAccumulator < 0.01666666753590107 && !Main.superFast) {
+					                if (Main.FrameSkipMode == FrameSkipMode.Subtle)
+						                Main.instance.SuppressDraw();
+
+					                return;
+				                }
+
+				                gameTime = new GameTime(gameTime.TotalGameTime, new TimeSpan(166666L));
+				                Main.UpdateTimeAccumulator -= 0.01666666753590107;
+				                Main.UpdateTimeAccumulator = Math.Min(Main.UpdateTimeAccumulator, 0.01666666753590107);
+			                }
+
+			                Main.uCount++;
+			                Main.drawSkip = false;
+			                PlayerInput.AllowExecutionOfGamepadInstructions = true;
+                            Do(/*main.TryPlayingCreditsRoll()*/);
+			                PlayerInput.SetZoom_UI();
+                            Do(/*UpdateUIStates(gameTime)*/);
+			                PlayerInput.SetZoom_Unscaled();
+			                Terraria.Graphics.Effects.Filters.Scene.Update(gameTime);
+			                Overlays.Scene.Update(gameTime);
+			                LiquidRenderer.Instance.Update(gameTime);
+                            ShowMainUpdateAudio();
+			                InGameNotificationsTracker.Update();
+			                ItemSlot.UpdateInterface();
+			                if (Main.teamCooldown > 0)
+				                Main.teamCooldown--;
+
+                            Do(/*main.DoUpdate_AnimateBackgrounds()*/() => {
+
+                            });
+			                Animation.UpdateAll();
+			                if (Main.qaStyle == 1)
+				                Main.gfxQuality = 1f;
+			                else if (Main.qaStyle == 2)
+				                Main.gfxQuality = 0.5f;
+			                else if (Main.qaStyle == 3)
+				                Main.gfxQuality = 0f;
+
+			                Main.maxDustToDraw = (int)(6000f * (Main.gfxQuality * 0.7f + 0.3f));
+			                if ((double)Main.gfxQuality < 0.9)
+				                Main.maxDustToDraw = (int)((float)Main.maxDustToDraw * Main.gfxQuality);
+
+			                if (Main.maxDustToDraw < 1000)
+				                Main.maxDustToDraw = 1000;
+
+			                Gore.goreTime = (int)(600f * Main.gfxQuality);
+			                if (!WorldGen.gen) {
+				                Liquid.cycles = (int)(17f - 10f * Main.gfxQuality);
+				                Liquid.curMaxLiquid = (int)((double)Liquid.maxLiquid * 0.25 + (double)Liquid.maxLiquid * 0.75 * (double)Main.gfxQuality);
+				                if (Main.Setting_UseReducedMaxLiquids)
+					                Liquid.curMaxLiquid = (int)(2500f + 2500f * Main.gfxQuality);
+			                }
+
+			                if (Main.superFast) {
+				                Main.graphics.SynchronizeWithVerticalRetrace = false;
+				                Main.drawSkip = false;
+			                }
+
+			                if ((double)Main.gfxQuality < 0.2)
+				                LegacyLighting.RenderPhases = 8;
+			                else if ((double)Main.gfxQuality < 0.4)
+				                LegacyLighting.RenderPhases = 7;
+			                else if ((double)Main.gfxQuality < 0.6)
+				                LegacyLighting.RenderPhases = 6;
+			                else if ((double)Main.gfxQuality < 0.8)
+				                LegacyLighting.RenderPhases = 5;
+			                else
+				                LegacyLighting.RenderPhases = 4;
+
+			                if (!WorldGen.gen && Liquid.quickSettle) {
+				                Liquid.curMaxLiquid = Liquid.maxLiquid;
+				                if (Main.Setting_UseReducedMaxLiquids)
+					                Liquid.curMaxLiquid = 5000;
+
+				                Liquid.cycles = 1;
+			                }
+
+			                if (WorldGen.tenthAnniversaryWorldGen && !Main.gameMenu) {
+				                WorldGen.tenthAnniversaryWorldGen = false;
+                            }
+
+			                if (WorldGen.drunkWorldGen || WorldGen.remixWorldGen) {
+				                if (!Main.gameMenu) {
+					                WorldGen.drunkWorldGen = false;
+					                WorldGen.remixWorldGen = false;
+					                /*main.*/logoRotation = 0f;
+					                /*main.*/logoRotationSpeed = 0f;
+					                /*main.*/logoScale = 1f;
+				                }
+			                }
+			                else if (Main.gameMenu && Math.Abs(logoRotationSpeed) > 1000f) {
+				                logoRotation = 0f;
+				                logoRotationSpeed = 0f;
+				                logoScale = 1f;
+			                }
+
+                            Do(/*main.UpdateOldNPCShop()*/() => {
+
+                            });
+			                Main.hasFocus = _base.IsActive;
+#if false   // if !NETCORE
+			                if (Platform.IsWindows) {
+				                Form form = Control.FromHandle(base.Window.Handle) as Form;
+				                bool num3 = form.WindowState == FormWindowState.Minimized;
+				                bool flag = Form.ActiveForm == form;
+				                hasFocus |= flag;
+				                if (num3)
+					                hasFocus = false;
+			                }
+#endif
+
+			                if (!Main.hasFocus && Main.netMode == 0) {
+				                if (!Platform.IsOSX)
+					                _base.IsMouseVisible = true;
+
+				                if (Main.netMode != 2 && Main.myPlayer >= 0)
+					                Main.player[Main.myPlayer].delayUseItem = true;
+
+				                Main.mouseLeftRelease = false;
+				                Main.mouseRightRelease = false;
+				                // Reset TML-introduced extra buttons
+				                Main.mouseMiddleRelease = false;
+				                Main.mouseXButton1Release = false;
+				                Main.mouseXButton2Release = false;
+
+				                if(Main.gameMenu) {
+                                    Do(/*main.UpdateMenu()*/);
+                                }
+
+				                Main.gamePaused = true;
+				                return;
+			                }
+
+			                if (!Platform.IsOSX)
+				                _base.IsMouseVisible = false;
+
+			                SkyManager.Instance.Update(gameTime);
+			                if (!Main.gamePaused)
+				                EmoteBubble.UpdateAll();
+
+			                ScreenObstruction.Update();
+			                ScreenDarkness.Update();
+			                MoonlordDeathDrama.Update();
+			                Do(/*main.DoUpdate_AnimateCursorColors()*/);
+			                Do(/*main.DoUpdate_AnimateTileGlows()*/);
+			                Do(/*main.DoUpdate_AnimateDiscoRGB()*/);
+			                Do(/*main.DoUpdate_AnimateVisualPlayerAura()*/);
+			                Do(/*main.DoUpdate_AnimateWaterfalls()*/);
+			                Do(/*main.DoUpdate_AnimateWalls()*/);
+			                Do(/*main.AnimateTiles()*/);
+			                Do(/*main.DoUpdate_AnimateItemIcons()*/);
+			                Do(/*main.DoUpdate_F10_ToggleFPS()*/);
+			                Do(/*main.DoUpdate_F9_ToggleLighting()*/);
+			                Do(/*main.DoUpdate_F8_ToggleNetDiagnostics()*/);
+			                Do(/*main.DoUpdate_F7_ToggleGraphicsDiagnostics()*/);
+			                Do(/*main.DoUpdate_F11_ToggleUI()*/);
+			                Do(/*main.DoUpdate_AltEnter_ToggleFullscreen()*/);
+			                Do(/*main.DoUpdate_HandleInput()*/);
+			                Do(/*main.DoUpdate_HandleChat()*/);
+			                Do(/*main.DoUpdate_Enter_ToggleChat()*/);
+			                if ((Main.timeForVisualEffects += 1.0) >= 216000.0)
+				                Main.timeForVisualEffects = 0.0;
+
+			                if (Main.gameMenu) {
+                                Do(/*main.UpdateMenu()*/);
+				                if (Main.netMode != NetmodeID.Server)
+					                return;
+
+				                Main.gamePaused = false;
+			                }
+
+			                if (!Main.CanUpdateGameplay && Main.netMode != NetmodeID.Server)
+				                return;
+
+			                Main.CheckInvasionProgressDisplay();
+		                }
+
+                        Do(/*main.UpdateWindyDayState()*/);
+		                if (Main.netMode == NetmodeID.Server)
+			                Main.cloudAlpha = Main.maxRaining;
+
+		                bool isActive = _base.IsActive;
+		                if (Main.netMode == NetmodeID.MultiplayerClient) {
+                            Do(/*main.TrySyncingMyPlayer()*/);
+                        }
+
+		                if (Main_CanPauseGame()) {  //Main.CanPauseGame()
+                            Do(/*main.DoUpdate_WhilePaused()*/);
+			                PlayerLoader.UpdateAutopause(Main.player[Main.myPlayer]);
+			                Main.gamePaused = true;
+			                return;
+		                }
+
+		                Main.gamePaused = false;
+			            Main_OnTickForInternalCodeOnly?.Invoke();   //Main.OnTickForInternalCodeOnly()
+
+		                if ((Main.dedServ || (Main.netMode != 1 && !Main.gameMenu && !Main.gamePaused)) && Main.AmbienceServer != null)
+			                Main.AmbienceServer.Update();
+
+		                WorldGen.BackgroundsCache.UpdateFlashValues();
+		                if (Main.LocalGolfState != null)
+			                Main.LocalGolfState.Update();
+
+		                if ((isActive || Main.netMode == NetmodeID.MultiplayerClient) && Main.cloudAlpha > 0f)
+			                Rain.MakeRain();
+
+		                if (Main.netMode != NetmodeID.MultiplayerClient)
+			                Main.instance.updateCloudLayer();
+
+                        if(!(Main.desiredWorldEventsUpdateRate <= 0.0)) {
+                            /*main.*/_partialWorldEventUpdates += Main.desiredWorldEventsUpdateRate;
+                            Main.worldEventUpdates = (int)_partialWorldEventUpdates;
+                            _partialWorldEventUpdates -= Main.worldEventUpdates;
+                            for(int i = 0; i < Main.worldEventUpdates; i++) {
+                                Main.instance.UpdateWeather(gameTime, i);
+                            }
+                        }
+
+                        Do(/*Main.UnpausedUpdateSeed = Utils.RandomNextSeed(Main.UnpausedUpdateSeed)*/);
+                        Main.Ambience();
+                        if(Main.netMode != NetmodeID.Server) {
+                            try {
+                                Main.snowing();
+                            }
+                            catch {
+                                if(!Main.ignoreErrors) {
+                                    throw;
+                                }
+                            }
+
+                            Sandstorm.EmitDust();
+                        }
+
+                        SystemLoader.PreUpdateEntities();
+                        if(Main.netMode != NetmodeID.Server) {
+                            if((double)Main.screenPosition.Y < Main.worldSurface * 16.0 + 16.0) {
+                                Star.UpdateStars();
+                                Cloud.UpdateClouds();
+                            }
+                            else if(Main.shimmerAlpha > 0f) {
+                                Star.UpdateStars();
+                                int num2 = Main.rand.Next(Main.numStars);
+                                if(Main.rand.Next(90) == 0) {
+                                    if(Main.star[num2] != null && !Main.star[num2].hidden && !Main.star[num2].falling) {
+                                        Main.star[num2].Fall();
+                                    }
+
+                                    for(int j = 0; j < Main.numStars; j++) {
+                                        if(Main.star[j].hidden) {
+                                            Star.SpawnStars(j);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        PortalHelper.UpdatePortalPoints();
+                        LucyAxeMessage.UpdateMessageCooldowns();
+                        if(Main.instance.ShouldUpdateEntities()) {
+                            Do(/*main.DoUpdateInWorld(main._worldUpdateTimeTester)*/() => {
+                                Do(/*main.UpdateParticleSystems()*/);
+                                Main.tileSolid[379] = false;
+                                Do(/*NPCShopDatabase.Test()*/);
+                                #region UpdatePlayers
+                                SystemLoader.PreUpdatePlayers();    //ModSystems.PreUpdatePlayers()
+                                int num = 0;
+                                int num2 = 0;
+                                Main.sittingManager.ClearPlayerAnchors();
+                                Main.sleepingManager.ClearPlayerAnchors();
+                                for(int i = 0; i < 255; i++) {
+                                    if(!Main.player[i].active) {
+                                        continue;
+                                    }
+                                    Do(() => Main.player[i].Update(i), () => {
+
+                                    });
+                                    if(Main.player[i].active) {
+                                        num++;
+                                        if(Main.player[i].sleeping.FullyFallenAsleep) {
+                                            num2++;
+                                        }
+                                    }
+                                }
+
+                                Main.CurrentFrameFlags.ActivePlayersCount = num;
+                                Main.CurrentFrameFlags.SleepingPlayersCount = num2;
+                                if(Main.netMode != NetmodeID.Server) {
+                                    int num3 = Main.myPlayer;
+                                    if(Main.player[num3].creativeGodMode) {
+                                        Main.player[num3].statLife = Main.player[num3].statLifeMax2;
+                                        Main.player[num3].statMana = Main.player[num3].statManaMax2;
+                                        Main.player[num3].breath = Main.player[num3].breathMax;
+                                    }
+                                }
+                                SystemLoader.PostUpdatePlayers();   //ModSystems.PostUpdatePlayers()
+                                #endregion
+                                Do(/*Main._gameUpdateCount++*/);
+                                #region UpdateNPCs
+                                SystemLoader.PreUpdateNPCs();
+                                NPC.RevengeManager.Update();
+                                if(Main.netMode != NetmodeID.MultiplayerClient) {
+                                    if(Main.remixWorld) {
+                                        NPC.SetRemixHax();
+                                    }
+
+                                    try {
+                                        NPC.SpawnNPC();
+                                    }
+                                    catch {
+                                    }
+
+                                    if(Main.remixWorld) {
+                                        NPC.ResetRemixHax();
+                                    }
+                                }
+
+                                if(Main.netMode != NetmodeID.MultiplayerClient) {
+                                    PressurePlateHelper.Update();
+                                }
+
+                                for(int j = 0; j < 255; j++) {
+                                    Main.player[j].nearbyActiveNPCs = 0f;
+                                    Main.player[j].townNPCs = 0f;
+                                }
+                                Do(/*Main.CheckBossIndexes()*/);
+                                Main.sittingManager.ClearNPCAnchors();
+                                Main.sleepingManager.ClearNPCAnchors();
+                                NPC.taxCollector = false;
+                                NPC.ClearFoundActiveNPCs();
+                                NPC.UpdateFoundActiveNPCs();
+                                FixExploitManEaters.Update();
+                                if(Main.netMode != NetmodeID.MultiplayerClient) {
+                                    Main.BestiaryTracker.Sights.ScanWorldForFinds();
+                                }
+
+                                bool anyActiveBossNPC = false;
+                                if(NPC.offSetDelayTime > 0) {
+                                    NPC.offSetDelayTime--;
+                                }
+
+                                if(Main.remixWorld && NPC.empressRageMode && !NPC.AnyNPCs(636)) {
+                                    NPC.empressRageMode = false;
+                                }
+
+                                if(Main.netMode != 1 && Main.afterPartyOfDoom && !BirthdayParty.PartyIsUp) {
+                                    for(int k = 0; k < 200; k++) {
+                                        NPC nPC = Main.npc[k];
+                                        if(nPC.active && nPC.townNPC && nPC.type != 37 && nPC.type != 453 && nPC.type != 368) {
+                                            Do(/*nPC.StrikeNPCNoInteraction(9999, 10f, -nPC.direction)*/);
+                                            if(Main.netMode == NetmodeID.Server) {
+                                                NetMessage.SendData(28, -1, -1, null, k, 9999f, 10f, -nPC.direction);
+                                            }
+                                        }
+                                    }
+
+                                    NPC.unlockedPartyGirlSpawn = false;
+                                    NPC.unlockedPrincessSpawn = false;
+                                    NPC.unlockedSlimeRainbowSpawn = false;
+                                    NPC.unlockedSlimeGreenSpawn = false;
+                                    Main.afterPartyOfDoom = false;
+                                }
+
+                                if(NPC.brainOfGravity >= 0 && NPC.brainOfGravity < 200 && (!Main.npc[NPC.brainOfGravity].active || Main.npc[NPC.brainOfGravity].type != NPCID.BrainofCthulhu)) {
+                                    NPC.brainOfGravity = -1;
+                                }
+
+                                for(int l = 0; l < 200; l++) {
+                                    if(Main.ignoreErrors) {
+                                        try {
+                                            Main.npc[l].UpdateNPC(l);
+                                            if(Main.npc[l].active && (Main.npc[l].boss || NPCID.Sets.DangerThatPreventsOtherDangers[Main.npc[l].type])) {
+                                                anyActiveBossNPC = true;
+                                            }
+                                        }
+                                        catch(Exception) {
+                                            Main.npc[l] = new NPC();
+                                        }
+                                    }
+                                    else {
+                                        Main.npc[l].UpdateNPC(l);
+                                    }
+                                }
+
+                                Main.CurrentFrameFlags.AnyActiveBossNPC = anyActiveBossNPC;
+                                SystemLoader.PostUpdateNPCs();
+                                #endregion
+                                #region UpateGores
+                                SystemLoader.PreUpdateGores();
+                                for(int m = 0; m < 600; m++) {
+                                    if(Main.ignoreErrors) {
+                                        try {
+                                            Main.gore[m].Update();
+                                        }
+                                        catch {
+                                            Main.gore[m] = new Gore();
+                                        }
+                                    }
+                                    else {
+                                        Main.gore[m].Update();
+                                    }
+                                }
+                                SystemLoader.PostUpdateGores();
+                                #endregion
+                                #region UpdateProjectiles
+                                SystemLoader.PreUpdateProjectiles();
+                                LockOnHelper.SetUP();
+                                Main.CurrentFrameFlags.HadAnActiveInteractibleProjectile = false;
+                                Do(/*main.PreUpdateAllProjectiles()*/);
+                                for(int n = 0; n < 1000; n++) {
+                                    Main.ProjectileUpdateLoopIndex = n;
+                                    if(Main.ignoreErrors) {
+                                        try {
+                                            Main.projectile[n].Update(n);
+                                        }
+                                        catch {
+                                            Main.projectile[n] = new Projectile();
+                                        }
+                                    }
+                                    else {
+                                        Main.projectile[n].Update(n);
+                                    }
+                                }
+
+                                Main.ProjectileUpdateLoopIndex = -1;
+                                Do(/*main.PostUpdateAllProjectiles()*/);
+                                LockOnHelper.SetDOWN();
+                                SystemLoader.PostUpdateProjectiles();
+                                #endregion
+                                #region UpdateItems
+                                SystemLoader.PreUpdateItems();
+                                Item.numberOfNewItems = 0;
+                                for(int num4 = 0; num4 < 400; num4++) {
+                                    if(Main.ignoreErrors) {
+                                        try {
+                                            Main.item[num4].UpdateItem(num4);
+                                        }
+                                        catch {
+                                            Main.item[num4] = new Item();
+                                        }
+                                    }
+                                    else {
+                                        Main.item[num4].UpdateItem(num4);
+                                    }
+                                }
+                                SystemLoader.PostUpdateItems();
+                                #endregion
+                                #region UpdateDusts
+                                SystemLoader.PreUpdateDusts();
+                                if(Main.ignoreErrors) {
+                                    try {
+                                        Dust.UpdateDust();
+                                    }
+                                    catch {
+                                        for(int num5 = 0; num5 < 6000; num5++) {
+                                            Main.dust[num5] = new Dust();
+                                            Main.dust[num5].dustIndex = num5;
+                                        }
+                                    }
+                                }
+                                else {
+                                    Dust.UpdateDust();
+                                }
+                                SystemLoader.PostUpdateDusts();
+                                #endregion
+                                if(Main.netMode != NetmodeID.Server) {
+                                    CombatText.UpdateCombatText();
+                                    PopupText.UpdateItemText();
+                                }
+                                #region UpdateTime
+                                SystemLoader.PreUpdateTime();
+                                Do(/*Main.UpdateTime()*/);
+                                SystemLoader.PostUpdateTime();
+                                #endregion
+                                Main.tileSolid[379] = true;
+                                if(Main.gameMenu && Main.netMode != NetmodeID.Server) {
+                                    return;
+                                }
+
+                                if(Main.netMode != NetmodeID.MultiplayerClient) {
+                                    WorldGen.UpdateWorld();
+                                    Do(/*Main.UpdateInvasion()*/);
+                                }
+
+                                if(Main.netMode == NetmodeID.Server) {
+                                    Do(/*Main.UpdateServer()*/);
+                                }
+
+                                if(Main.netMode == NetmodeID.MultiplayerClient) {
+                                    Do(/*Main.UpdateClient()*/);
+                                }
+
+                                SystemLoader.PostUpdateEverything();
+                                Main.chatMonitor.Update();
+                                Main.upTimer = (float)_worldUpdateTimeTester.Elapsed.TotalMilliseconds;
+                                if(Main.upTimerMaxDelay > 0f) {
+                                    Main.upTimerMaxDelay -= 1f;
+                                }
+                                else {
+                                    Main.upTimerMax = 0f;
+                                }
+
+                                if(Main.upTimer > Main.upTimerMax) {
+                                    Main.upTimerMax = Main.upTimer;
+                                    Main.upTimerMaxDelay = 400f;
+                                }
+
+                                Chest.UpdateChestFrames();
+                                Do(/*main._ambientWindSys.Update()*/);
+                                Main.instance.TilesRenderer.Update();
+                                Main.instance.WallsRenderer.Update();
+                                if(/*Main.*/cameraLerp > 0f) {
+                                    /*Main.*/cameraLerpTimer++;
+                                    if(cameraLerpTimer >= /*Main.*/cameraLerpTimeToggle) {
+                                        cameraLerp += (float)((cameraLerpTimer - cameraLerpTimeToggle) / 3 + 1) * 0.001f;
+                                    }
+
+                                    if(cameraLerp > 1f) {
+                                        cameraLerp = 1f;
+                                    }
+                                }
+                            });
+                        }
+
+                        if(Main.netMode != NetmodeID.Server) {
+                            Main.ChromaPainter.Update();
+                        }
+                    });//这里会捕捉所有报错并Log出来(Logging.Terraria.Error(e))
+                    Do(() => CinematicManager.Instance.Update(gameTime), () => {
+
+                    });
+                    #region 网络发包
+                    if(Main.netMode == NetmodeID.Server) {
+                        for(int i = 0; i < 256; i++) {
+                            if(Netplay.Clients[i].Socket != null)
+                                Netplay.Clients[i].Socket.SendQueuedPackets();
+                        }
+                    }
+                    else if(Main.netMode == NetmodeID.MultiplayerClient) {
+                        Netplay.Connection.Socket.SendQueuedPackets();
+                    }
+                    #endregion
+                    _isDrawingOrUpdating = false;
+                }
+
+                Do(/*base.Update(gameTime)*/);
+                Do(/*main.ConsumeAllMainThreadActions()*/() => {
+
+                });
+                if(GameAskedToQuit) {   //Main.GameAskedToQuit
+                    Do(/*Main.QuitGame()*/);
+                }
+            }
+            public static void ShowMainUpdateAudio() {
+
+            }
+            public static void ShowMainDoUpdateInWorldSimple() {
+                #region params
+                Stopwatch _worldUpdateTimeTester = default;
+                #endregion
+                Do(/*main.UpdateParticleSystems()*/);
+                Main.tileSolid[379] = false;
+                Do(/*NPCShopDatabase.Test()*/);
+                #region UpdatePlayers
+                SystemLoader.PreUpdatePlayers();    //ModSystems.PreUpdatePlayers()
+                int num = 0;
+                int num2 = 0;
+                Main.sittingManager.ClearPlayerAnchors();
+                Main.sleepingManager.ClearPlayerAnchors();
+                for(int i = 0; i < 255; i++) {
+                    if(!Main.player[i].active) {
+                        continue;
+                    }
+                    Do(() => Main.player[i].Update(i), () => {
+
+                    });
+                }
+                Main.player.Where(p => p.active).WithIndex().ForeachDo(p => Do(() => p.Item2.Update(p.Item1), () => {
+                    //player.Update():
+                    //重置运动相关的参数(runAcceleration, gravity等)
+                    //设置运动相关的参数(根据shimmerWet, wet, vortexDebuff等值)
+                    //重置Hitbox
+                    PlayerLoader.PreUpdate(p.Item2);
+                    p.Item2.UpdateBiomes();
+                    p.Item2.UpdateMinionTarget();
+                }));
+                SystemLoader.PostUpdatePlayers();   //ModSystems.PostUpdatePlayers()
+                #endregion
+                Do(/*Main._gameUpdateCount++*/);
+                #region UpdateNPCs
+                SystemLoader.PreUpdateNPCs();
+                NPC.RevengeManager.Update();
+                if(Main.netMode != NetmodeID.MultiplayerClient) {
+                    if(Main.remixWorld) {
+                        NPC.SetRemixHax();
+                    }
+
+                    try {
+                        NPC.SpawnNPC();
+                    }
+                    catch {
+                    }
+
+                    if(Main.remixWorld) {
+                        NPC.ResetRemixHax();
+                    }
+                }
+
+                if(Main.netMode != NetmodeID.MultiplayerClient) {
+                    PressurePlateHelper.Update();
+                }
+
+                for(int j = 0; j < 255; j++) {
+                    Main.player[j].nearbyActiveNPCs = 0f;
+                    Main.player[j].townNPCs = 0f;
+                }
+                Do(/*Main.CheckBossIndexes()*/);
+                Main.sittingManager.ClearNPCAnchors();
+                Main.sleepingManager.ClearNPCAnchors();
+                NPC.taxCollector = false;
+                NPC.ClearFoundActiveNPCs();
+                NPC.UpdateFoundActiveNPCs();
+                FixExploitManEaters.Update();
+                if(Main.netMode != NetmodeID.MultiplayerClient) {
+                    Main.BestiaryTracker.Sights.ScanWorldForFinds();
+                }
+
+                bool anyActiveBossNPC = false;
+                if(NPC.offSetDelayTime > 0) {
+                    NPC.offSetDelayTime--;
+                }
+
+                if(Main.remixWorld && NPC.empressRageMode && !NPC.AnyNPCs(636)) {
+                    NPC.empressRageMode = false;
+                }
+
+                if(Main.netMode != 1 && Main.afterPartyOfDoom && !BirthdayParty.PartyIsUp) {
+                    for(int k = 0; k < 200; k++) {
+                        NPC nPC = Main.npc[k];
+                        if(nPC.active && nPC.townNPC && nPC.type != 37 && nPC.type != 453 && nPC.type != 368) {
+                            Do(/*nPC.StrikeNPCNoInteraction(9999, 10f, -nPC.direction)*/);
+                            if(Main.netMode == NetmodeID.Server) {
+                                NetMessage.SendData(28, -1, -1, null, k, 9999f, 10f, -nPC.direction);
+                            }
+                        }
+                    }
+
+                    NPC.unlockedPartyGirlSpawn = false;
+                    NPC.unlockedPrincessSpawn = false;
+                    NPC.unlockedSlimeRainbowSpawn = false;
+                    NPC.unlockedSlimeGreenSpawn = false;
+                    Main.afterPartyOfDoom = false;
+                }
+
+                if(NPC.brainOfGravity >= 0 && NPC.brainOfGravity < 200 && (!Main.npc[NPC.brainOfGravity].active || Main.npc[NPC.brainOfGravity].type != NPCID.BrainofCthulhu)) {
+                    NPC.brainOfGravity = -1;
+                }
+
+                for(int l = 0; l < 200; l++) {
+                    if(Main.ignoreErrors) {
+                        try {
+                            Main.npc[l].UpdateNPC(l);
+                            if(Main.npc[l].active && (Main.npc[l].boss || NPCID.Sets.DangerThatPreventsOtherDangers[Main.npc[l].type])) {
+                                anyActiveBossNPC = true;
+                            }
+                        }
+                        catch(Exception) {
+                            Main.npc[l] = new NPC();
+                        }
+                    }
+                    else {
+                        Main.npc[l].UpdateNPC(l);
+                    }
+                }
+
+                Main.CurrentFrameFlags.AnyActiveBossNPC = anyActiveBossNPC;
+                SystemLoader.PostUpdateNPCs();
+                #endregion
+                #region UpateGores
+                SystemLoader.PreUpdateGores();
+                for(int m = 0; m < 600; m++) {
+                    if(Main.ignoreErrors) {
+                        try {
+                            Main.gore[m].Update();
+                        }
+                        catch {
+                            Main.gore[m] = new Gore();
+                        }
+                    }
+                    else {
+                        Main.gore[m].Update();
+                    }
+                }
+                SystemLoader.PostUpdateGores();
+                #endregion
+                #region UpdateProjectiles
+                SystemLoader.PreUpdateProjectiles();
+                LockOnHelper.SetUP();
+                Main.CurrentFrameFlags.HadAnActiveInteractibleProjectile = false;
+                Do(/*main.PreUpdateAllProjectiles()*/);
+                for(int n = 0; n < 1000; n++) {
+                    Main.ProjectileUpdateLoopIndex = n;
+                    if(Main.ignoreErrors) {
+                        try {
+                            Main.projectile[n].Update(n);
+                        }
+                        catch {
+                            Main.projectile[n] = new Projectile();
+                        }
+                    }
+                    else {
+                        Main.projectile[n].Update(n);
+                    }
+                }
+
+                Main.ProjectileUpdateLoopIndex = -1;
+                Do(/*main.PostUpdateAllProjectiles()*/);
+                LockOnHelper.SetDOWN();
+                SystemLoader.PostUpdateProjectiles();
+                #endregion
+                #region UpdateItems
+                SystemLoader.PreUpdateItems();  //ModSystems.PreUpdateItems()
+                Item.numberOfNewItems = 0;
+                Main.item.WithIndex().ForeachDo(p => Do(() => p.Item2.UpdateItem(p.Item1), () => {
+
+                }));
+                SystemLoader.PostUpdateItems(); //ModSystems.PostUpdateItems()
+                #endregion
+                #region UpdateDusts
+                SystemLoader.PreUpdateDusts();
+                Dust.UpdateDust();
+                SystemLoader.PostUpdateDusts();
+                #endregion
+                if(Main.netMode != NetmodeID.Server) {
+                    CombatText.UpdateCombatText();
+                    PopupText.UpdateItemText();
+                }
+                #region UpdateTime
+                SystemLoader.PreUpdateTime();
+                Do(/*Main.UpdateTime()*/);
+                SystemLoader.PostUpdateTime();
+                #endregion
+                Main.tileSolid[379] = true;
+                if(Main.gameMenu && Main.netMode != NetmodeID.Server) {
+                    return;
+                }
+                #region Update world and invasion
+                if(Main.netMode != NetmodeID.MultiplayerClient) {
+                    WorldGen.UpdateWorld();
+                    Do(/*Main.UpdateInvasion()*/);
+                }
+                #endregion
+                #region Update server and client
+                if(Main.netMode == NetmodeID.Server) {
+                    Do(/*Main.UpdateServer()*/);
+                }
+                if(Main.netMode == NetmodeID.MultiplayerClient) {
+                    Do(/*Main.UpdateClient()*/);
+                }
+                #endregion
+                SystemLoader.PostUpdateEverything();    //ModSystems.PostUpdateEverything()
+                Main.chatMonitor.Update();
+                #region upate Main.upTimer
+                Main.upTimer = (float)_worldUpdateTimeTester.Elapsed.TotalMilliseconds;
+                if(Main.upTimerMaxDelay > 0f) {
+                    Main.upTimerMaxDelay -= 1f;
+                }
+                else {
+                    Main.upTimerMax = 0f;
+                }
+                if(Main.upTimer > Main.upTimerMax) {
+                    Main.upTimerMax = Main.upTimer;
+                    Main.upTimerMaxDelay = 400f;
+                }
+                #endregion
+
+                Chest.UpdateChestFrames();
+                Do(/*main._ambientWindSys.Update()*/);
+                Main.instance.TilesRenderer.Update();
+                Main.instance.WallsRenderer.Update();
+            }
         }
         public class WorldGen_cls {
             public static WorldGen worldGen;
@@ -2673,7 +3716,23 @@ public class Learning {
                 recipe.AddRecipeGroup(recipeGroupName, stack);  //向合成表添加入一个合成组
                 recipe.AddRecipeGroup(recipeGroup, stack);
                 recipe.AddRecipeGroup(recipeGroupID, stack);
+                Show(recipe.createItem);    //可以直接对此进行修改以修改产物, 实际的产物会从它Clone出来
+                Show(recipe.requiredItem);  //在游戏完成添加Recipe前可以自由修改, 之后就不要随便改了
+                //此处可以对所消耗物品的数量进行修改(最好是调小)
+                recipe.AddConsumeItemCallback((Recipe recipe, int type, ref int amount) => { });
+                recipe.AddConsumeItemCallback(Recipe.ConsumptionRules.Alchemy); //让每一种材料的每一个物品都有 1/3 的机会不被消耗
+                /*
+                在制作时做一些事
+                consumedItems: 似乎只是克隆出来的, 修改它没法做到修改消耗物
+                item: 产物, 是createItem克隆出来的物品, 可以随意修改, 会反映到结果上, 但是还没制作时看不出来
+                destinationStack: 往什么上叠, 一般是Main.mouseItem
+                */
+                recipe.AddOnCraftCallback((recipe, item, consumedItems, destinationStack) => { });
                 recipe.Register();  //使用以在游戏中添加此配方
+
+                Show(recipe.RecipeIndex);     //在Main.recipe中的序号, 在被注册(Register)之前为 -1
+                Show(Main.recipe);
+                //Show(RecipeLoader.FirstRecipeForItem)  //这么好用的东西竟然是internal的, 可惜
             }
         }
         public class RecipeGroup_cls {

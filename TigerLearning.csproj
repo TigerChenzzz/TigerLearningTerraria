@@ -21,4 +21,12 @@
     <Folder Include="Content\Projectiles\" />
     <Folder Include="Content\Tiles\" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="InstantPlatformFallthrough">
+      <HintPath>lib\InstantPlatformFallthrough.dll</HintPath>
+    </Reference>
+    <Reference Include="JourneyLimitRemove">
+      <HintPath>lib\JourneyLimitRemove.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
