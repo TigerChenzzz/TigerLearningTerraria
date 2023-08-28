@@ -3,10 +3,11 @@
 //以及tml的Example Mod (简称Ex Mod) https://github.com/tModLoader/tModLoader
 //一些东西也参考了群中世界的教程 https://fs49.org/
 
-#pragma warning disable IDE0059 // 不需要赋值
-#pragma warning disable CS0649 // 从未对字段赋值, 字段将一直保持其默认值 null
-#pragma warning disable CS0219 // 变量已被赋值, 但从未使用过它的值
 #pragma warning disable CA2211 // 非常量字段应当不可见
+#pragma warning disable CS0219 // 变量已被赋值, 但从未使用过它的值
+#pragma warning disable CS0649 // 从未对字段赋值, 字段将一直保持其默认值 null
+#pragma warning disable IDE0059 // 不需要赋值
+#pragma warning disable IDE0060 // 删除未使用的参数
 
 #if Terraria143
 using IL.Terraria.GameContent.UI;
@@ -51,6 +52,7 @@ using Terraria.Utilities;
 using Terraria.ID;
 using System.Diagnostics;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace TigerLearning;
 
@@ -168,12 +170,12 @@ public class Learning {
                 }
                 return true;
             }
-            public static string 右键蓄力 = @"
+            public static string 右键蓄力 = """
                 泰拉瑞亚有一个很灵性的玩意, 那就是 player.channel 不支持右键使用
                 那我们是不是可以放弃右键左键都可以做蓄力武器的存在了？当然不可能。
                 目前来说, 我们有一个最简单的方法, 那就是用 player.controlUseTile 判右键的持续使用。
                 目前我没找到什么原因导致的 player.controlUseTile 在长按右键的时候会一直为true, 所以暂时用着吧, 等有更好的办法再说(
-            ";
+                """;
         }
         public class 添加特技 : ModItem {
             public static string 参考 = "给物品加特技 https://fs49.org/2020/03/13/%e7%bb%99%e7%89%a9%e5%93%81%e5%8a%a0%e7%89%b9%e6%8a%80/";
@@ -332,7 +334,7 @@ public class Learning {
     public class 添加饰品 {
         public class ExampleAccessories : ModItem {
             public static string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
-            public static string 说明 = @"需额外准备与类名同名且在对应命名空间下的图片(.png)文件";
+            public static string 说明 = """需额外准备与类名同名且在对应命名空间下的图片(.png)文件""";
 
             public override void SetDefaults() {
                 Item.width = 16;
@@ -391,7 +393,7 @@ public class Learning {
         [AutoloadEquip(EquipType.Wings)]
         public class ExampleWings : ModItem {
             public static string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
-            public static string 说明 = @"需额外准备名字为 [类名]_Wings 且在对应命名空间下的图片(.png)文件(四帧)";
+            public static string 说明 = """需额外准备名字为 [类名]_Wings 且在对应命名空间下的图片(.png)文件(四帧)""";
             public override void SetDefaults() {
                 Item.width = 22;
                 Item.height = 20;
@@ -508,11 +510,11 @@ public class Learning {
     }
     public class 添加套装 {
         public static string 参考 = "自定义套装和Buff https://fs49.org/2020/03/12/%e8%87%aa%e5%ae%9a%e4%b9%89%e5%a5%97%e8%a3%85%e5%92%8cbuff/";
-        public static string 简介 = @"
+        public static string 简介 = """
             添加头盔, 护甲和护腿需在对应ModItem子类上添加[AutoloadEquip(EquipType.{Head / Body / Legs})]
             在SetDefaults()中用Item.defense设置防御
             重写UpdateEquip(Player player)以在装备时做一些事情
-        ";
+            """;
         public static void 套装效果(Item head, Item body, Item legs, Player player) {
             #region 在头盔中重写IsArmorSet(Item head, Item body, Item legs)
             Do(head);       //head其实不需要
@@ -529,21 +531,21 @@ public class Learning {
         }
     }
     public class 源码下的基本文件 {
-        public static string 必要文件 = @"
+        public static string 必要文件 = """
             build.txt       : 如何构建此模组
             [Mod名].cs      : 相当于主类
             [Mod名].csproj  : 包含了哪些文件
             description.txt : 其实好像不是必须的, 但正式的模组总该有个描述文件
             icon.png        : 好像也不是必须的, 但最好有作为图标
-        ";
+            """;
         public class Build_txt {
             public static string 参考 = "Mod基本信息 https://fs49.org/2020/03/09/mod%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af/";
-            public static string 基本形式 = @"
+            public static string 基本形式 = """
                 [key1] = [value1]
                 [key2] = [value2]
                 ...
-            ";
-            public static string 支持的一些键 = @"
+                """;
+            public static string 支持的一些键 = """
                 displayName    : Mod在TML里显示的名字(不是文件夹的名字哦, 可以是中文)
                 author         : 作者的名字
                 version        : Mod的版本, 会在Mod菜单中显示。注意, 这个属性是要求格式的。格式如下  <数字>.<数字>.<数字>.<数字>, 也就是我们最常见到的版本号的格式, 这里我取了1.0
@@ -558,7 +560,7 @@ public class Learning {
                 buildIgnore    : 将Mod源码编译成tmod文件的时候, 哪些文件(夹)是不需要放进tmod文件的, 这样能减小tmod文件的大小。includeSource为false的时候自动会忽略.cs文件   默认build.txt, .gitattributes, .gitignore, .git/, .vs/, .idea/, bin/, obj/,  Thumbs.db
                 includePDB     : 需不需要包括符号调试文件, 如果包含可以更多提供debug信息, 同时也允许使用VS进行Debug   默认FALSE
                 side           : 这个Mod是客户端Mod还是服务器端Mod     默认Both
-            ";
+                """;
         }
     }
     public class 创建Buff {
@@ -642,9 +644,9 @@ public class Learning {
         }
     }
     public class 吟唱武器 {
-        public static string 介绍 = @"
+        public static string 介绍 = """
             item.channel这个属性会让玩家在使用物品后进入channel状态, 可以用player.channel来检测
-        ";
+            """;
         public class ExampleChannelWeapon : ModItem {
             public static string 参考 = "魔法导弹类武器 https://fs49.org/2022/01/22/%e9%ad%94%e6%b3%95%e5%af%bc%e5%bc%b9%e7%b1%bb%e6%ad%a6%e5%99%a8/";
             public override void SetDefaults() {
@@ -701,10 +703,10 @@ public class Learning {
         }
     }
     public class 召唤武器 {
-        public static string 介绍 = @"
+        public static string 介绍 = """
             召唤武器其实本质上就是物品带个智能一点的弹幕
             但是为了表示玩家的召唤物的状态, 我们还需要一个Buff以及一个自定义玩家属性来保证召唤物能正常工作以及消失
-        ";
+            """;
         public class ExampleMinionPlayer : ModPlayer {
             public static string 参考 = "召唤武器实战：僚机(1.4再版) https://fs49.org/2022/09/28/%e5%8f%ac%e5%94%a4%e6%ad%a6%e5%99%a8%e5%ae%9e%e6%88%98%ef%bc%9a%e5%83%9a%e6%9c%ba%ef%bc%881-4%e5%86%8d%e7%89%88%ef%bc%89/";
             public bool exampleMinion;
@@ -789,9 +791,9 @@ public class Learning {
         }
     }
     public class 坐骑 {
-        public static string 介绍 = @"
+        public static string 介绍 = """
             贴图命名格式: 坐骑名_Front.png 或者 坐骑名_Back.png
-        ";
+            """;
         public class ExampleMountItem : ModItem {
             public static string 参考 = "从零开始的简单坐骑 https://fs49.org/2022/01/17/%e4%bb%8e%e9%9b%b6%e5%bc%80%e5%a7%8b%e7%9a%84%e7%ae%80%e5%8d%95%e5%9d%90%e9%aa%91/";
             public override void SetDefaults() {
@@ -916,10 +918,10 @@ public class Learning {
         }
     }
     public class 物块基础 {
-        public static string 帧图 = @"
+        public static string 帧图 = """
             物块都是以16 X 16的规格等分成小块, 每个小块之间都要有2像素的间隔
             物块的帧图无论是竖的还是横的, 都是可以的
-        ";
+            """;
         public class ExampleTileItem : ModItem {
             public static string 参考 = "Kid: 物块属性讲解一: 基本物块 https://fs49.org/2022/08/26/kid%ef%bc%9a%e7%89%a9%e5%9d%97%e5%b1%9e%e6%80%a7%e8%ae%b2%e8%a7%a3%e4%b8%80%ef%bc%9a%e5%9f%ba%e6%9c%ac%e7%89%a9%e5%9d%97/";
             public override void SetDefaults() {
@@ -1172,12 +1174,13 @@ public class Learning {
             #region params
             NPC npc = null;
             #endregion
-            Show(@"请务必区分好npc.type和npc.netID
+            Show("""
+                请务必区分好npc.type和npc.netID
                 有些npc共用相同的npc.type, 但是其netID却不同
                 典型的例子是各种史莱姆的type基本都是1(NPC.BlueSlime),但是netID各不相同
                 NPCID中的数字对应的是netID, 一般请将这两者作比较
                 当然在原版出现这种情况时额外的netID都是负数, 所以也可以判这个来确定是否有这种情况
-            ");
+                """);
             Show(npc.type, npc.netID);
             Show(NPCID.BlueSlime, NPCID.GreenSlime, NPCID.RedSlime, NPCID.PurpleSlime);
         }
@@ -1185,7 +1188,7 @@ public class Learning {
         [AutoloadHead]
         public class 城镇NPC : ModNPC {
             public static string 参考 = "创建一个基础城镇NPC https://fs49.org/2023/01/20/%e5%88%9b%e5%bb%ba%e4%b8%80%e4%b8%aa%e5%9f%ba%e7%a1%80%e5%9f%8e%e9%95%87npc-1-4-ver/";
-            public static string 分类 = @"
+            public static string 分类 = """
                 按入住方式: 常驻型，旅商型，宠物和其他型
                     旅商型: 参见 Example Mod 的Example Traveling Merchant
                     其他型: 比如原版的地牢老人和骷髅商人
@@ -1199,11 +1202,11 @@ public class Learning {
                     魔法型: 基本特征为两帧攻击动画，发射弹幕，不持有武器但发动攻击时脚下会产生一个（发光发热的）魔法光环
                     近战型: 基本特征为四帧攻击动画，不发射弹幕且持有武器
                     不攻击型: 所有的城镇宠物都属于这个类型，没有攻击手段，遇见敌怪时只会逃跑
-            ";
-            public static string 贴图 = @"
+                """;
+            public static string 贴图 = """
                 除了要准备一份[npcName].png的帧图外, 还要准备一份[npcName]_Head.png
                 表示NPC在小地图的图标
-            ";
+                """;
             public override void SetStaticDefaults() {
                 int npcID = NPCID.Merchant; //直接抄商人的数据
                 Main.npcFrameCount[Type] = Main.npcFrameCount[npcID];
@@ -1551,17 +1554,17 @@ public class Learning {
     }
     public class 绘制基础 {
         public static string 参考 = "简单绘制 https://fs49.org/2021/12/22/%e7%ae%80%e5%8d%95%e7%bb%98%e5%88%b6/";
-        public static string 世界坐标与屏幕坐标 = @"
+        public static string 世界坐标与屏幕坐标 = """
             世界坐标是从整个世界的左上角算起的, 玩家和npc的位置都是基于世界坐标的
             但是屏幕坐标是基于屏幕左上角的
             那么绘制的时候, 我们需要把世界坐标转换成为屏幕坐标
             我们需要把世界坐标转换成屏幕坐标, 那么我们会用到Main.screenPosition(屏幕在世界的坐标)
             那么世界坐标转屏幕坐标就只用减去 Main.screenPosition就好了
-        ";
-        public static string 绘制流程 = @"
+            """;
+        public static string 绘制流程 = """
             一定不要在没有SpriteBatch为参数的重写函数里写绘制函数!!!(初学者)
             (其他地方可以通过Main.spriteBatch获取
-        ";
+            """;
         public static void 获得贴图() {
             #region params
             string texturePath = "ExampleMod/Images/SomeItem";
@@ -1625,6 +1628,7 @@ public class Learning {
             Utils.DrawBorderStringFourWay(spriteBatch, font, "text", position.X, position.Y, textColor, borderColor, origin, scale);
             /*
             font可以为DynamicSpriteFont或SpriteFont
+                DynamicSpriteFont可用FontAssets.ItemStack.Value等
             text可以为string或StringBuilder
             scale可以为float或Vector2
             以上三条加上{可选的rotation等参数}凑出了12个重载
@@ -1683,12 +1687,12 @@ public class Learning {
         }
     }
     public class Mod联动 {
-        public static string 依赖关系 = @"
+        public static string 依赖关系 = """
             在build.txt中modReferences中填的mod名表示强{依赖/引用}, weakReferences表示弱{依赖/引用}
             在强依赖时, 依赖的模组肯定会先于本模组被加载, 否则可能在之后加载或者根本不会加载
             若要指定最低版本, 则在build.txt的references的mod名后加@[版本号], 如 modReferences = ExampleMod@1.0.0.0
             可以将引用的mod的dll添加到VS中获得代码补全
-        ";
+            """;
         public static void 获取其他模组的东西() {
             if(ModLoader.TryGetMod("CalamityMod", out Mod calamity)) {
                 calamity.TryFind("PlantyMush", out ModItem plantyMush); //获得特定模组的特定ModItem
@@ -2036,6 +2040,57 @@ public class Learning {
             #endregion
         }
     }
+    public class 特性 {
+        public static string 参考 = "C#之特性 https://blog.csdn.net/weixin_39520967/article/details/122676703";
+        #region 已定义的特性
+        public static class AttributeUsage_attr {
+            public static string intro = """
+                AttributeUsage特性只能在Attribute的派生类上生效
+                构造参数中validOn代表能应用特性的目标类型
+                    Inherited代表能否被继承, 默认false
+                    AllowMultiple代表是否可以给目标上多个此特性, 默认false
+                """;
+            [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+            public class ExampleAttribute : Attribute { }
+        }
+        public static class Obsolete_attr {
+            public static string intro = """
+                用以标注某些东西已过时, 可传入提示信息(字符串)和是否报错
+                """;
+            [Obsolete]
+            public static int obsoleteField;
+            [Obsolete("message")]
+            public static void ObsoleteMethod() { }
+            [Obsolete("message", true)]
+            public delegate void ObsoleteDelegate();
+        }
+        #endregion
+        #region 自定义特性
+        [AttributeUsage(AttributeTargets.Class)]
+        public class MyCustomAttribute : Attribute {
+            public int number;
+            public void AMethod() {
+                Console.WriteLine(number);
+            }
+        }
+        public static string 声明一个自定义特性 = """
+            定义一个类并且这个类派生自System.Attribute
+            类的名字以Attribute结尾
+            为了安全性, 可以用一个sealed修饰成一个密封类型(非必须的), 以防止被其他类所继承
+            (可以参考预定义特性的源码, 其都被sealed所修饰)
+            """;
+        public static string 成员 = "特性可以有公有成员，但是公有成员只能是字段, 属性或构造函数";
+        public static string 限制特性的使用 = "使用AttributeUsage以限制";
+        public static void ShowAttribute() {
+            //用type.IsDefined(AttributeType, inherit = false)判断特性是否应用到type类型上, inherit代表是否检查继承链
+            typeof(特性).IsDefined(typeof(Attribute), inherit: true);
+            //用type.GetCustomAttribute[s]([AttributeType, ]inherit = false)或
+            //type.GetCustomAttribute[s]<Attribute>(inherit = false)获得类型上的特性
+            typeof(特性).GetCustomAttribute<Attribute>();
+            Attribute.GetCustomAttribute(typeof(特性).GetMember("name")[0], typeof(Attribute));
+        }
+        #endregion
+    }
     public class 泰拉瑞亚On {
         public class 重写伤害计算 : ModSystem {
             public static string 参考 = "On的功能与应用 https://fs49.org/2021/10/28/on%e7%9a%84%e5%8a%9f%e8%83%bd%e4%b8%8e%e5%ba%94%e7%94%a8/";
@@ -2247,10 +2302,10 @@ public class Learning {
             #endregion
             /*
             number: ChangeType, x, y, tileType, style
-	        ChangeType WorldGen.{
-	            KillTile = 0, PlaceTile = 1, KillWall = 2, PlaceWall = 3, KillTileNoItem = 4,
-	            PlaceWire = 5, KillWire = 6, PoundTile = 7, PlaceActuator = 8, KillActuator = 9
-	            PlaceWire2 = 10, KillWire2 = 11, PlaceWire3 = 12, KillWire3 = 13, SlopeTile = 14,
+            ChangeType WorldGen.{
+                KillTile = 0, PlaceTile = 1, KillWall = 2, PlaceWall = 3, KillTileNoItem = 4,
+                PlaceWire = 5, KillWire = 6, PoundTile = 7, PlaceActuator = 8, KillActuator = 9
+                PlaceWire2 = 10, KillWire2 = 11, PlaceWire3 = 12, KillWire3 = 13, SlopeTile = 14,
                 FrameTrack = 15, PlaceWire4 = 16, KillWire4 = 17 }
             */
             NetMessage.SendData(MessageID.TileManipulation, -1, -1, null, changeType, i, j, tileType, style);
@@ -2401,17 +2456,19 @@ public class Learning {
         }
         public class Item_cls {
             public static Item item;
-            public static string newItem_func = @"int NewItem(IEntitySource source, position, type, stack = 1, noBroadcast = false, ...)
+            public static string newItem_func = """
+                int NewItem(IEntitySource source, position, type, stack = 1, noBroadcast = false, ...)
                 以在世界中新建一个物品, position可以为: Vector2 position; Vector2 pos, Vector2 randomBox, Vector2 pos, int Width, int Height;
                 int X, int Y, int Width, int Height 当传入矩形范围时似乎会生成在正中间.
                 不应该在多人模式的客户端被调用, 若想要在客户端的代码中生成, 可以用 player.QuickSpawnItem(source, item, stack = 1),
                 它会处理多人模式的同步需要.     返回生成的物品在Main.item中的序号
-            ";
-            public static string constructor = @"new Item()什么都不会做
+                """;
+            public static string constructor = """
+                new Item()什么都不会做
                 item = new Item(itemId)会设置item的各种基本信息(Item基本的SetDefaults)
                 会设置其ModItem, 调用ModItem的AutoDefaults和SetDefaults, 然后是
                 关联的GlobalItems的SetDefaults
-            ";//构造函数
+                """;//构造函数
             public static void ShowItem() {
                 #region params
                 int x = 0, y = 0, width = 0, height = 0;
@@ -2765,361 +2822,361 @@ public class Learning {
                         Do(/*main.UpdateWorldPreparationState()*/() => {
 
                         });
-		                if (Player.BlockInteractionWithProjectiles > 0 && !Main.mouseRight && Main.mouseRightRelease) {
-			                Player.BlockInteractionWithProjectiles--;
+                        if (Player.BlockInteractionWithProjectiles > 0 && !Main.mouseRight && Main.mouseRightRelease) {
+                            Player.BlockInteractionWithProjectiles--;
                         }
                         PlayerInput.SetZoom_UI();
                         for (int num = Main.DelayedProcesses.Count - 1; num >= 0; num--) {
-			                IEnumerator enumerator = Main.DelayedProcesses[num];
-			                if (!enumerator.MoveNext())
-				                Main.DelayedProcesses.Remove(enumerator);
-		                }
+                            IEnumerator enumerator = Main.DelayedProcesses[num];
+                            if (!enumerator.MoveNext())
+                                Main.DelayedProcesses.Remove(enumerator);
+                        }
 
-		                if (!Main.gameMenu || Main.menuMode != MenuID.FancyUI) {
-			                Main.MenuUI.SetState(null);
+                        if (!Main.gameMenu || Main.menuMode != MenuID.FancyUI) {
+                            Main.MenuUI.SetState(null);
                         }
                         else {
-			                Main.InGameUI.SetState(null);
+                            Main.InGameUI.SetState(null);
                         }
                         
-		                Main.CurrentInputTextTakerOverride = null;
-		                if(!Main.dedServ) {
-			                Main.AchievementAdvisor.Update();
+                        Main.CurrentInputTextTakerOverride = null;
+                        if(!Main.dedServ) {
+                            Main.AchievementAdvisor.Update();
                         }
 
-		                PlayerInput.SetZoom_Unscaled();
-                        Do(/*main.MouseOversTryToClear()*/);
-		                PlayerInput.ResetInputsOnActiveStateChange();
-		                if(!Main.dedServ) {
-			                Main_OnTickForThirdPartySoftwareOnly?.Invoke(); //Main.OnTickForThirdPartySoftwareOnly
+                        PlayerInput.SetZoom_Unscaled();
+                        Dos(/*main.MouseOversTryToClear()*/);
+                        PlayerInput.ResetInputsOnActiveStateChange();
+                        if(!Main.dedServ) {
+                            Main_OnTickForThirdPartySoftwareOnly?.Invoke(); //Main.OnTickForThirdPartySoftwareOnly
                         }
-		                if (/*Main.*/_hasPendingNetmodeChange) {
-			                Main.netMode = /*Main.*/_targetNetMode;
-			                _hasPendingNetmodeChange = false;
-		                }
-
-		                if(CaptureManager.Instance.IsCapturing) {
-			                return;
+                        if (/*Main.*/_hasPendingNetmodeChange) {
+                            Main.netMode = /*Main.*/_targetNetMode;
+                            _hasPendingNetmodeChange = false;
                         }
 
-		                if (Main.ActivePlayerFileData != null) {
-			                Main.ActivePlayerFileData.UpdatePlayTimer();
+                        if(CaptureManager.Instance.IsCapturing) {
+                            return;
                         }
 
-		                Netplay.UpdateInMainThread();
-		                Main.gameInactive = !_base.IsActive;
-		                if (Main.changeTheTitle) {
-			                Main.changeTheTitle = false;
-			                Do(/*main.SetTitle()*/);
-		                }
-
-		                Do(/*_worldUpdateTimeTester.Restart()*/);
-		                if(!WorldGen.gen) {
-			                WorldGen.destroyObject = false;
+                        if (Main.ActivePlayerFileData != null) {
+                            Main.ActivePlayerFileData.UpdatePlayTimer();
                         }
 
-		                if(Main.gameMenu) {
-			                Main.mapFullscreen = false;
+                        Netplay.UpdateInMainThread();
+                        Main.gameInactive = !_base.IsActive;
+                        if (Main.changeTheTitle) {
+                            Main.changeTheTitle = false;
+                            Dos(/*main.SetTitle()*/);
                         }
 
-                        Do(/*main.UpdateSettingUnlocks()*/);
-		                if (Main.dedServ) {
-			                if (Main.dedServFPS) {
-				                Main.updatesCountedForFPS++;
-				                if (!Main.fpsTimer.IsRunning)
-					                Main.fpsTimer.Restart();
+                        Dos(/*_worldUpdateTimeTester.Restart()*/);
+                        if(!WorldGen.gen) {
+                            WorldGen.destroyObject = false;
+                        }
 
-				                if (Main.fpsTimer.ElapsedMilliseconds >= 1000) {
-					                Main.dedServCount1 += Main.updatesCountedForFPS;
-					                Main.dedServCount2++;
-					                float num2 = (float)Main.dedServCount1 / (float)Main.dedServCount2;
-					                Console.WriteLine(Main.updatesCountedForFPS + "  (" + num2 + ")");
-					                Main.updatesCountedForFPS = 0;
-					                Main.fpsTimer.Restart();
-				                }
-			                }
-			                else {
-				                if (Main.fpsTimer.IsRunning)
-					                Main.fpsTimer.Stop();
+                        if(Main.gameMenu) {
+                            Main.mapFullscreen = false;
+                        }
 
-				                Main.updatesCountedForFPS = 0;
-			                }
-		                }
+                        Dos(/*main.UpdateSettingUnlocks()*/);
+                        if (Main.dedServ) {
+                            if (Main.dedServFPS) {
+                                Main.updatesCountedForFPS++;
+                                if (!Main.fpsTimer.IsRunning)
+                                    Main.fpsTimer.Restart();
 
-                        Do(/*LocalizationLoader.Update()*/);
-                        Do(/*main.DoUpdate_AutoSave()*/);
-		                if (!Main.dedServ) {
-			                ChromaInitializer.UpdateEvents();
-			                Main.Chroma.Update(Main.GlobalTimeWrappedHourly);
-			                if (Main.superFast) {
-				                _base.IsFixedTimeStep = false;
-				                Main.graphics.SynchronizeWithVerticalRetrace = false;
-			                }
-			                else {
-				                if (Main.FrameSkipMode == FrameSkipMode.Off || Main.FrameSkipMode == FrameSkipMode.Subtle) {
-					                if (_base.IsActive)
-						                _base.IsFixedTimeStep = false;
-					                else
-						                _base.IsFixedTimeStep = true;
-				                }
-				                else {
-					                _base.IsFixedTimeStep = true;
-					                Main.graphics.SynchronizeWithVerticalRetrace = true;
-				                }
+                                if (Main.fpsTimer.ElapsedMilliseconds >= 1000) {
+                                    Main.dedServCount1 += Main.updatesCountedForFPS;
+                                    Main.dedServCount2++;
+                                    float num2 = (float)Main.dedServCount1 / (float)Main.dedServCount2;
+                                    Console.WriteLine(Main.updatesCountedForFPS + "  (" + num2 + ")");
+                                    Main.updatesCountedForFPS = 0;
+                                    Main.fpsTimer.Restart();
+                                }
+                            }
+                            else {
+                                if (Main.fpsTimer.IsRunning)
+                                    Main.fpsTimer.Stop();
 
-				                Main.graphics.SynchronizeWithVerticalRetrace = true;
-			                }
+                                Main.updatesCountedForFPS = 0;
+                            }
+                        }
 
-			                if(Main.showSplash) {
-				                return;
+                        Dos(/*LocalizationLoader.Update()*/);
+                        Dos(/*main.DoUpdate_AutoSave()*/);
+                        if (!Main.dedServ) {
+                            ChromaInitializer.UpdateEvents();
+                            Main.Chroma.Update(Main.GlobalTimeWrappedHourly);
+                            if (Main.superFast) {
+                                _base.IsFixedTimeStep = false;
+                                Main.graphics.SynchronizeWithVerticalRetrace = false;
+                            }
+                            else {
+                                if (Main.FrameSkipMode == FrameSkipMode.Off || Main.FrameSkipMode == FrameSkipMode.Subtle) {
+                                    if (_base.IsActive)
+                                        _base.IsFixedTimeStep = false;
+                                    else
+                                        _base.IsFixedTimeStep = true;
+                                }
+                                else {
+                                    _base.IsFixedTimeStep = true;
+                                    Main.graphics.SynchronizeWithVerticalRetrace = true;
+                                }
+
+                                Main.graphics.SynchronizeWithVerticalRetrace = true;
                             }
 
-			                Main.updatesCountedForFPS++;
-			                if (Main.fpsTimer.ElapsedMilliseconds >= 1000) {
-				                if ((float)Main.fpsCount >= 30f + 30f * Main.gfxQuality) {
-					                Main.gfxQuality += Main.gfxRate;
-					                Main.gfxRate += 0.005f;
-				                }
-				                else if ((float)Main.fpsCount < 29f + 30f * Main.gfxQuality) {
-					                Main.gfxRate = 0.01f;
-					                Main.gfxQuality -= 0.1f;
-				                }
+                            if(Main.showSplash) {
+                                return;
+                            }
 
-				                if (Main.gfxQuality < 0f)
-					                Main.gfxQuality = 0f;
+                            Main.updatesCountedForFPS++;
+                            if (Main.fpsTimer.ElapsedMilliseconds >= 1000) {
+                                if ((float)Main.fpsCount >= 30f + 30f * Main.gfxQuality) {
+                                    Main.gfxQuality += Main.gfxRate;
+                                    Main.gfxRate += 0.005f;
+                                }
+                                else if ((float)Main.fpsCount < 29f + 30f * Main.gfxQuality) {
+                                    Main.gfxRate = 0.01f;
+                                    Main.gfxQuality -= 0.1f;
+                                }
 
-				                if (Main.gfxQuality > 1f)
-					                Main.gfxQuality = 1f;
+                                if (Main.gfxQuality < 0f)
+                                    Main.gfxQuality = 0f;
 
-				                if (Main.maxQ && _base.IsActive) {
-					                Main.gfxQuality = 1f;
-					                Main.maxQ = false;
-				                }
+                                if (Main.gfxQuality > 1f)
+                                    Main.gfxQuality = 1f;
 
-				                Main.updateRate = Main.uCount;
-				                Main.frameRate = Main.fpsCount;
-				                Main.fpsCount = 0;
-				                Main.fpsTimer.Restart();
-				                Main.updatesCountedForFPS = 0;
-				                Main.drawsCountedForFPS = 0;
-				                Main.uCount = 0;
-				                if (Main.gfxQuality < 0.8f)
-					                Main.mapTimeMax = (int)((1f - Main.gfxQuality) * 60f);
-				                else
-					                Main.mapTimeMax = 0;
-			                }
+                                if (Main.maxQ && _base.IsActive) {
+                                    Main.gfxQuality = 1f;
+                                    Main.maxQ = false;
+                                }
 
-			                if (Main.FrameSkipMode == FrameSkipMode.Off || Main.FrameSkipMode == FrameSkipMode.Subtle) {
-				                Main.UpdateTimeAccumulator += gameTime.ElapsedGameTime.TotalSeconds;
-				                if (Main.UpdateTimeAccumulator < 0.01666666753590107 && !Main.superFast) {
-					                if (Main.FrameSkipMode == FrameSkipMode.Subtle)
-						                Main.instance.SuppressDraw();
+                                Main.updateRate = Main.uCount;
+                                Main.frameRate = Main.fpsCount;
+                                Main.fpsCount = 0;
+                                Main.fpsTimer.Restart();
+                                Main.updatesCountedForFPS = 0;
+                                Main.drawsCountedForFPS = 0;
+                                Main.uCount = 0;
+                                if (Main.gfxQuality < 0.8f)
+                                    Main.mapTimeMax = (int)((1f - Main.gfxQuality) * 60f);
+                                else
+                                    Main.mapTimeMax = 0;
+                            }
 
-					                return;
-				                }
+                            if (Main.FrameSkipMode == FrameSkipMode.Off || Main.FrameSkipMode == FrameSkipMode.Subtle) {
+                                Main.UpdateTimeAccumulator += gameTime.ElapsedGameTime.TotalSeconds;
+                                if (Main.UpdateTimeAccumulator < 0.01666666753590107 && !Main.superFast) {
+                                    if (Main.FrameSkipMode == FrameSkipMode.Subtle)
+                                        Main.instance.SuppressDraw();
 
-				                gameTime = new GameTime(gameTime.TotalGameTime, new TimeSpan(166666L));
-				                Main.UpdateTimeAccumulator -= 0.01666666753590107;
-				                Main.UpdateTimeAccumulator = Math.Min(Main.UpdateTimeAccumulator, 0.01666666753590107);
-			                }
+                                    return;
+                                }
 
-			                Main.uCount++;
-			                Main.drawSkip = false;
-			                PlayerInput.AllowExecutionOfGamepadInstructions = true;
-                            Do(/*main.TryPlayingCreditsRoll()*/);
-			                PlayerInput.SetZoom_UI();
-                            Do(/*UpdateUIStates(gameTime)*/);
-			                PlayerInput.SetZoom_Unscaled();
-			                Terraria.Graphics.Effects.Filters.Scene.Update(gameTime);
-			                Overlays.Scene.Update(gameTime);
-			                LiquidRenderer.Instance.Update(gameTime);
+                                gameTime = new GameTime(gameTime.TotalGameTime, new TimeSpan(166666L));
+                                Main.UpdateTimeAccumulator -= 0.01666666753590107;
+                                Main.UpdateTimeAccumulator = Math.Min(Main.UpdateTimeAccumulator, 0.01666666753590107);
+                            }
+
+                            Main.uCount++;
+                            Main.drawSkip = false;
+                            PlayerInput.AllowExecutionOfGamepadInstructions = true;
+                            Dos(/*main.TryPlayingCreditsRoll()*/);
+                            PlayerInput.SetZoom_UI();
+                            Dos(/*UpdateUIStates(gameTime)*/);
+                            PlayerInput.SetZoom_Unscaled();
+                            Terraria.Graphics.Effects.Filters.Scene.Update(gameTime);
+                            Overlays.Scene.Update(gameTime);
+                            LiquidRenderer.Instance.Update(gameTime);
                             ShowMainUpdateAudio();
-			                InGameNotificationsTracker.Update();
-			                ItemSlot.UpdateInterface();
-			                if (Main.teamCooldown > 0)
-				                Main.teamCooldown--;
+                            InGameNotificationsTracker.Update();
+                            ItemSlot.UpdateInterface();
+                            if (Main.teamCooldown > 0)
+                                Main.teamCooldown--;
 
                             Do(/*main.DoUpdate_AnimateBackgrounds()*/() => {
 
                             });
-			                Animation.UpdateAll();
-			                if (Main.qaStyle == 1)
-				                Main.gfxQuality = 1f;
-			                else if (Main.qaStyle == 2)
-				                Main.gfxQuality = 0.5f;
-			                else if (Main.qaStyle == 3)
-				                Main.gfxQuality = 0f;
+                            Animation.UpdateAll();
+                            if (Main.qaStyle == 1)
+                                Main.gfxQuality = 1f;
+                            else if (Main.qaStyle == 2)
+                                Main.gfxQuality = 0.5f;
+                            else if (Main.qaStyle == 3)
+                                Main.gfxQuality = 0f;
 
-			                Main.maxDustToDraw = (int)(6000f * (Main.gfxQuality * 0.7f + 0.3f));
-			                if ((double)Main.gfxQuality < 0.9)
-				                Main.maxDustToDraw = (int)((float)Main.maxDustToDraw * Main.gfxQuality);
+                            Main.maxDustToDraw = (int)(6000f * (Main.gfxQuality * 0.7f + 0.3f));
+                            if ((double)Main.gfxQuality < 0.9)
+                                Main.maxDustToDraw = (int)((float)Main.maxDustToDraw * Main.gfxQuality);
 
-			                if (Main.maxDustToDraw < 1000)
-				                Main.maxDustToDraw = 1000;
+                            if (Main.maxDustToDraw < 1000)
+                                Main.maxDustToDraw = 1000;
 
-			                Gore.goreTime = (int)(600f * Main.gfxQuality);
-			                if (!WorldGen.gen) {
-				                Liquid.cycles = (int)(17f - 10f * Main.gfxQuality);
-				                Liquid.curMaxLiquid = (int)((double)Liquid.maxLiquid * 0.25 + (double)Liquid.maxLiquid * 0.75 * (double)Main.gfxQuality);
-				                if (Main.Setting_UseReducedMaxLiquids)
-					                Liquid.curMaxLiquid = (int)(2500f + 2500f * Main.gfxQuality);
-			                }
-
-			                if (Main.superFast) {
-				                Main.graphics.SynchronizeWithVerticalRetrace = false;
-				                Main.drawSkip = false;
-			                }
-
-			                if ((double)Main.gfxQuality < 0.2)
-				                LegacyLighting.RenderPhases = 8;
-			                else if ((double)Main.gfxQuality < 0.4)
-				                LegacyLighting.RenderPhases = 7;
-			                else if ((double)Main.gfxQuality < 0.6)
-				                LegacyLighting.RenderPhases = 6;
-			                else if ((double)Main.gfxQuality < 0.8)
-				                LegacyLighting.RenderPhases = 5;
-			                else
-				                LegacyLighting.RenderPhases = 4;
-
-			                if (!WorldGen.gen && Liquid.quickSettle) {
-				                Liquid.curMaxLiquid = Liquid.maxLiquid;
-				                if (Main.Setting_UseReducedMaxLiquids)
-					                Liquid.curMaxLiquid = 5000;
-
-				                Liquid.cycles = 1;
-			                }
-
-			                if (WorldGen.tenthAnniversaryWorldGen && !Main.gameMenu) {
-				                WorldGen.tenthAnniversaryWorldGen = false;
+                            Gore.goreTime = (int)(600f * Main.gfxQuality);
+                            if (!WorldGen.gen) {
+                                Liquid.cycles = (int)(17f - 10f * Main.gfxQuality);
+                                Liquid.curMaxLiquid = (int)((double)Liquid.maxLiquid * 0.25 + (double)Liquid.maxLiquid * 0.75 * (double)Main.gfxQuality);
+                                if (Main.Setting_UseReducedMaxLiquids)
+                                    Liquid.curMaxLiquid = (int)(2500f + 2500f * Main.gfxQuality);
                             }
 
-			                if (WorldGen.drunkWorldGen || WorldGen.remixWorldGen) {
-				                if (!Main.gameMenu) {
-					                WorldGen.drunkWorldGen = false;
-					                WorldGen.remixWorldGen = false;
-					                /*main.*/logoRotation = 0f;
-					                /*main.*/logoRotationSpeed = 0f;
-					                /*main.*/logoScale = 1f;
-				                }
-			                }
-			                else if (Main.gameMenu && Math.Abs(logoRotationSpeed) > 1000f) {
-				                logoRotation = 0f;
-				                logoRotationSpeed = 0f;
-				                logoScale = 1f;
-			                }
+                            if (Main.superFast) {
+                                Main.graphics.SynchronizeWithVerticalRetrace = false;
+                                Main.drawSkip = false;
+                            }
+
+                            if ((double)Main.gfxQuality < 0.2)
+                                LegacyLighting.RenderPhases = 8;
+                            else if ((double)Main.gfxQuality < 0.4)
+                                LegacyLighting.RenderPhases = 7;
+                            else if ((double)Main.gfxQuality < 0.6)
+                                LegacyLighting.RenderPhases = 6;
+                            else if ((double)Main.gfxQuality < 0.8)
+                                LegacyLighting.RenderPhases = 5;
+                            else
+                                LegacyLighting.RenderPhases = 4;
+
+                            if (!WorldGen.gen && Liquid.quickSettle) {
+                                Liquid.curMaxLiquid = Liquid.maxLiquid;
+                                if (Main.Setting_UseReducedMaxLiquids)
+                                    Liquid.curMaxLiquid = 5000;
+
+                                Liquid.cycles = 1;
+                            }
+
+                            if (WorldGen.tenthAnniversaryWorldGen && !Main.gameMenu) {
+                                WorldGen.tenthAnniversaryWorldGen = false;
+                            }
+
+                            if (WorldGen.drunkWorldGen || WorldGen.remixWorldGen) {
+                                if (!Main.gameMenu) {
+                                    WorldGen.drunkWorldGen = false;
+                                    WorldGen.remixWorldGen = false;
+                                    /*main.*/logoRotation = 0f;
+                                    /*main.*/logoRotationSpeed = 0f;
+                                    /*main.*/logoScale = 1f;
+                                }
+                            }
+                            else if (Main.gameMenu && Math.Abs(logoRotationSpeed) > 1000f) {
+                                logoRotation = 0f;
+                                logoRotationSpeed = 0f;
+                                logoScale = 1f;
+                            }
 
                             Do(/*main.UpdateOldNPCShop()*/() => {
 
                             });
-			                Main.hasFocus = _base.IsActive;
+                            Main.hasFocus = _base.IsActive;
 #if false   // if !NETCORE
-			                if (Platform.IsWindows) {
-				                Form form = Control.FromHandle(base.Window.Handle) as Form;
-				                bool num3 = form.WindowState == FormWindowState.Minimized;
-				                bool flag = Form.ActiveForm == form;
-				                hasFocus |= flag;
-				                if (num3)
-					                hasFocus = false;
-			                }
+                            if (Platform.IsWindows) {
+                                Form form = Control.FromHandle(base.Window.Handle) as Form;
+                                bool num3 = form.WindowState == FormWindowState.Minimized;
+                                bool flag = Form.ActiveForm == form;
+                                hasFocus |= flag;
+                                if (num3)
+                                    hasFocus = false;
+                            }
 #endif
 
-			                if (!Main.hasFocus && Main.netMode == 0) {
-				                if (!Platform.IsOSX)
-					                _base.IsMouseVisible = true;
+                            if (!Main.hasFocus && Main.netMode == NetmodeID.SinglePlayer) {
+                                if (!Platform.IsOSX)
+                                    _base.IsMouseVisible = true;
 
-				                if (Main.netMode != 2 && Main.myPlayer >= 0)
-					                Main.player[Main.myPlayer].delayUseItem = true;
+                                if (Main.netMode != NetmodeID.Server && Main.myPlayer >= 0)
+                                    Main.player[Main.myPlayer].delayUseItem = true;
 
-				                Main.mouseLeftRelease = false;
-				                Main.mouseRightRelease = false;
-				                // Reset TML-introduced extra buttons
-				                Main.mouseMiddleRelease = false;
-				                Main.mouseXButton1Release = false;
-				                Main.mouseXButton2Release = false;
+                                Main.mouseLeftRelease = false;
+                                Main.mouseRightRelease = false;
+                                // Reset TML-introduced extra buttons
+                                Main.mouseMiddleRelease = false;
+                                Main.mouseXButton1Release = false;
+                                Main.mouseXButton2Release = false;
 
-				                if(Main.gameMenu) {
-                                    Do(/*main.UpdateMenu()*/);
+                                if(Main.gameMenu) {
+                                    Dos(/*main.UpdateMenu()*/);
                                 }
 
-				                Main.gamePaused = true;
-				                return;
-			                }
+                                Main.gamePaused = true;
+                                return;
+                            }
 
-			                if (!Platform.IsOSX)
-				                _base.IsMouseVisible = false;
+                            if (!Platform.IsOSX)
+                                _base.IsMouseVisible = false;
 
-			                SkyManager.Instance.Update(gameTime);
-			                if (!Main.gamePaused)
-				                EmoteBubble.UpdateAll();
+                            SkyManager.Instance.Update(gameTime);
+                            if (!Main.gamePaused)
+                                EmoteBubble.UpdateAll();
 
-			                ScreenObstruction.Update();
-			                ScreenDarkness.Update();
-			                MoonlordDeathDrama.Update();
-			                Do(/*main.DoUpdate_AnimateCursorColors()*/);
-			                Do(/*main.DoUpdate_AnimateTileGlows()*/);
-			                Do(/*main.DoUpdate_AnimateDiscoRGB()*/);
-			                Do(/*main.DoUpdate_AnimateVisualPlayerAura()*/);
-			                Do(/*main.DoUpdate_AnimateWaterfalls()*/);
-			                Do(/*main.DoUpdate_AnimateWalls()*/);
-			                Do(/*main.AnimateTiles()*/);
-			                Do(/*main.DoUpdate_AnimateItemIcons()*/);
-			                Do(/*main.DoUpdate_F10_ToggleFPS()*/);
-			                Do(/*main.DoUpdate_F9_ToggleLighting()*/);
-			                Do(/*main.DoUpdate_F8_ToggleNetDiagnostics()*/);
-			                Do(/*main.DoUpdate_F7_ToggleGraphicsDiagnostics()*/);
-			                Do(/*main.DoUpdate_F11_ToggleUI()*/);
-			                Do(/*main.DoUpdate_AltEnter_ToggleFullscreen()*/);
-			                Do(/*main.DoUpdate_HandleInput()*/);
-			                Do(/*main.DoUpdate_HandleChat()*/);
-			                Do(/*main.DoUpdate_Enter_ToggleChat()*/);
-			                if ((Main.timeForVisualEffects += 1.0) >= 216000.0)
-				                Main.timeForVisualEffects = 0.0;
+                            ScreenObstruction.Update();
+                            ScreenDarkness.Update();
+                            MoonlordDeathDrama.Update();
+                            Dos(/*main.DoUpdate_AnimateCursorColors()*/);
+                            Dos(/*main.DoUpdate_AnimateTileGlows()*/);
+                            Dos(/*main.DoUpdate_AnimateDiscoRGB()*/);
+                            Dos(/*main.DoUpdate_AnimateVisualPlayerAura()*/);
+                            Dos(/*main.DoUpdate_AnimateWaterfalls()*/);
+                            Dos(/*main.DoUpdate_AnimateWalls()*/);
+                            Dos(/*main.AnimateTiles()*/);
+                            Dos(/*main.DoUpdate_AnimateItemIcons()*/);
+                            Dos(/*main.DoUpdate_F10_ToggleFPS()*/);
+                            Dos(/*main.DoUpdate_F9_ToggleLighting()*/);
+                            Dos(/*main.DoUpdate_F8_ToggleNetDiagnostics()*/);
+                            Dos(/*main.DoUpdate_F7_ToggleGraphicsDiagnostics()*/);
+                            Dos(/*main.DoUpdate_F11_ToggleUI()*/);
+                            Dos(/*main.DoUpdate_AltEnter_ToggleFullscreen()*/);
+                            Dos(/*main.DoUpdate_HandleInput()*/);
+                            Dos(/*main.DoUpdate_HandleChat()*/);
+                            Dos(/*main.DoUpdate_Enter_ToggleChat()*/);
+                            if ((Main.timeForVisualEffects += 1.0) >= 216000.0)
+                                Main.timeForVisualEffects = 0.0;
 
-			                if (Main.gameMenu) {
-                                Do(/*main.UpdateMenu()*/);
-				                if (Main.netMode != NetmodeID.Server)
-					                return;
+                            if (Main.gameMenu) {
+                                Dos(/*main.UpdateMenu()*/);
+                                if (Main.netMode != NetmodeID.Server)
+                                    return;
 
-				                Main.gamePaused = false;
-			                }
+                                Main.gamePaused = false;
+                            }
 
-			                if (!Main.CanUpdateGameplay && Main.netMode != NetmodeID.Server)
-				                return;
+                            if (!Main.CanUpdateGameplay && Main.netMode != NetmodeID.Server)
+                                return;
 
-			                Main.CheckInvasionProgressDisplay();
-		                }
-
-                        Do(/*main.UpdateWindyDayState()*/);
-		                if (Main.netMode == NetmodeID.Server)
-			                Main.cloudAlpha = Main.maxRaining;
-
-		                bool isActive = _base.IsActive;
-		                if (Main.netMode == NetmodeID.MultiplayerClient) {
-                            Do(/*main.TrySyncingMyPlayer()*/);
+                            Main.CheckInvasionProgressDisplay();
                         }
 
-		                if (Main_CanPauseGame()) {  //Main.CanPauseGame()
-                            Do(/*main.DoUpdate_WhilePaused()*/);
-			                PlayerLoader.UpdateAutopause(Main.player[Main.myPlayer]);
-			                Main.gamePaused = true;
-			                return;
-		                }
+                        Dos(/*main.UpdateWindyDayState()*/);
+                        if (Main.netMode == NetmodeID.Server)
+                            Main.cloudAlpha = Main.maxRaining;
 
-		                Main.gamePaused = false;
-			            Main_OnTickForInternalCodeOnly?.Invoke();   //Main.OnTickForInternalCodeOnly()
+                        bool isActive = _base.IsActive;
+                        if (Main.netMode == NetmodeID.MultiplayerClient) {
+                            Dos(/*main.TrySyncingMyPlayer()*/);
+                        }
 
-		                if ((Main.dedServ || (Main.netMode != 1 && !Main.gameMenu && !Main.gamePaused)) && Main.AmbienceServer != null)
-			                Main.AmbienceServer.Update();
+                        if (Main_CanPauseGame()) {  //Main.CanPauseGame()
+                            Dos(/*main.DoUpdate_WhilePaused()*/);
+                            PlayerLoader.UpdateAutopause(Main.player[Main.myPlayer]);
+                            Main.gamePaused = true;
+                            return;
+                        }
 
-		                WorldGen.BackgroundsCache.UpdateFlashValues();
-		                if (Main.LocalGolfState != null)
-			                Main.LocalGolfState.Update();
+                        Main.gamePaused = false;
+                        Main_OnTickForInternalCodeOnly?.Invoke();   //Main.OnTickForInternalCodeOnly()
 
-		                if ((isActive || Main.netMode == NetmodeID.MultiplayerClient) && Main.cloudAlpha > 0f)
-			                Rain.MakeRain();
+                        if ((Main.dedServ || (Main.netMode != NetmodeID.MultiplayerClient && !Main.gameMenu && !Main.gamePaused)) && Main.AmbienceServer != null)
+                            Main.AmbienceServer.Update();
 
-		                if (Main.netMode != NetmodeID.MultiplayerClient)
-			                Main.instance.updateCloudLayer();
+                        WorldGen.BackgroundsCache.UpdateFlashValues();
+                        if (Main.LocalGolfState != null)
+                            Main.LocalGolfState.Update();
+
+                        if ((isActive || Main.netMode == NetmodeID.MultiplayerClient) && Main.cloudAlpha > 0f)
+                            Rain.MakeRain();
+
+                        if (Main.netMode != NetmodeID.MultiplayerClient)
+                            Main.instance.updateCloudLayer();
 
                         if(!(Main.desiredWorldEventsUpdateRate <= 0.0)) {
                             /*main.*/_partialWorldEventUpdates += Main.desiredWorldEventsUpdateRate;
@@ -3130,7 +3187,7 @@ public class Learning {
                             }
                         }
 
-                        Do(/*Main.UnpausedUpdateSeed = Utils.RandomNextSeed(Main.UnpausedUpdateSeed)*/);
+                        Dos(/*Main.UnpausedUpdateSeed = Utils.RandomNextSeed(Main.UnpausedUpdateSeed)*/);
                         Main.Ambience();
                         if(Main.netMode != NetmodeID.Server) {
                             try {
@@ -3154,7 +3211,7 @@ public class Learning {
                             else if(Main.shimmerAlpha > 0f) {
                                 Star.UpdateStars();
                                 int num2 = Main.rand.Next(Main.numStars);
-                                if(Main.rand.Next(90) == 0) {
+                                if(Main.rand.NextBool(90)) {
                                     if(Main.star[num2] != null && !Main.star[num2].hidden && !Main.star[num2].falling) {
                                         Main.star[num2].Fall();
                                     }
@@ -3172,9 +3229,9 @@ public class Learning {
                         LucyAxeMessage.UpdateMessageCooldowns();
                         if(Main.instance.ShouldUpdateEntities()) {
                             Do(/*main.DoUpdateInWorld(main._worldUpdateTimeTester)*/() => {
-                                Do(/*main.UpdateParticleSystems()*/);
+                                Dos(/*main.UpdateParticleSystems()*/);
                                 Main.tileSolid[379] = false;
-                                Do(/*NPCShopDatabase.Test()*/);
+                                Dos(/*NPCShopDatabase.Test()*/);
                                 #region UpdatePlayers
                                 SystemLoader.PreUpdatePlayers();    //ModSystems.PreUpdatePlayers()
                                 int num = 0;
@@ -3185,7 +3242,7 @@ public class Learning {
                                     if(!Main.player[i].active) {
                                         continue;
                                     }
-                                    Do(() => Main.player[i].Update(i), () => {
+                                    Dos(() => Main.player[i].Update(i), () => {
 
                                     });
                                     if(Main.player[i].active) {
@@ -3208,7 +3265,7 @@ public class Learning {
                                 }
                                 SystemLoader.PostUpdatePlayers();   //ModSystems.PostUpdatePlayers()
                                 #endregion
-                                Do(/*Main._gameUpdateCount++*/);
+                                Dos(/*Main._gameUpdateCount++*/);
                                 #region UpdateNPCs
                                 SystemLoader.PreUpdateNPCs();
                                 NPC.RevengeManager.Update();
@@ -3236,7 +3293,7 @@ public class Learning {
                                     Main.player[j].nearbyActiveNPCs = 0f;
                                     Main.player[j].townNPCs = 0f;
                                 }
-                                Do(/*Main.CheckBossIndexes()*/);
+                                Dos(/*Main.CheckBossIndexes()*/);
                                 Main.sittingManager.ClearNPCAnchors();
                                 Main.sleepingManager.ClearNPCAnchors();
                                 NPC.taxCollector = false;
@@ -3256,13 +3313,13 @@ public class Learning {
                                     NPC.empressRageMode = false;
                                 }
 
-                                if(Main.netMode != 1 && Main.afterPartyOfDoom && !BirthdayParty.PartyIsUp) {
+                                if(Main.netMode != NetmodeID.MultiplayerClient && Main.afterPartyOfDoom && !BirthdayParty.PartyIsUp) {
                                     for(int k = 0; k < 200; k++) {
                                         NPC nPC = Main.npc[k];
-                                        if(nPC.active && nPC.townNPC && nPC.type != 37 && nPC.type != 453 && nPC.type != 368) {
-                                            Do(/*nPC.StrikeNPCNoInteraction(9999, 10f, -nPC.direction)*/);
+                                        if(nPC.active && nPC.townNPC && nPC.type != NPCID.OldMan && nPC.type != NPCID.SkeletonMerchant && nPC.type != NPCID.TravellingMerchant) {
+                                            Dos(/*nPC.StrikeNPCNoInteraction(9999, 10f, -nPC.direction)*/);
                                             if(Main.netMode == NetmodeID.Server) {
-                                                NetMessage.SendData(28, -1, -1, null, k, 9999f, 10f, -nPC.direction);
+                                                NetMessage.SendData(MessageID.DamageNPC, -1, -1, null, k, 9999f, 10f, -nPC.direction);
                                             }
                                         }
                                     }
@@ -3319,7 +3376,7 @@ public class Learning {
                                 SystemLoader.PreUpdateProjectiles();
                                 LockOnHelper.SetUP();
                                 Main.CurrentFrameFlags.HadAnActiveInteractibleProjectile = false;
-                                Do(/*main.PreUpdateAllProjectiles()*/);
+                                Dos(/*main.PreUpdateAllProjectiles()*/);
                                 for(int n = 0; n < 1000; n++) {
                                     Main.ProjectileUpdateLoopIndex = n;
                                     if(Main.ignoreErrors) {
@@ -3336,7 +3393,7 @@ public class Learning {
                                 }
 
                                 Main.ProjectileUpdateLoopIndex = -1;
-                                Do(/*main.PostUpdateAllProjectiles()*/);
+                                Dos(/*main.PostUpdateAllProjectiles()*/);
                                 LockOnHelper.SetDOWN();
                                 SystemLoader.PostUpdateProjectiles();
                                 #endregion
@@ -3382,7 +3439,7 @@ public class Learning {
                                 }
                                 #region UpdateTime
                                 SystemLoader.PreUpdateTime();
-                                Do(/*Main.UpdateTime()*/);
+                                Dos(/*Main.UpdateTime()*/);
                                 SystemLoader.PostUpdateTime();
                                 #endregion
                                 Main.tileSolid[379] = true;
@@ -3392,15 +3449,15 @@ public class Learning {
 
                                 if(Main.netMode != NetmodeID.MultiplayerClient) {
                                     WorldGen.UpdateWorld();
-                                    Do(/*Main.UpdateInvasion()*/);
+                                    Dos(/*Main.UpdateInvasion()*/);
                                 }
 
                                 if(Main.netMode == NetmodeID.Server) {
-                                    Do(/*Main.UpdateServer()*/);
+                                    Dos(/*Main.UpdateServer()*/);
                                 }
 
                                 if(Main.netMode == NetmodeID.MultiplayerClient) {
-                                    Do(/*Main.UpdateClient()*/);
+                                    Dos(/*Main.UpdateClient()*/);
                                 }
 
                                 SystemLoader.PostUpdateEverything();
@@ -3419,7 +3476,7 @@ public class Learning {
                                 }
 
                                 Chest.UpdateChestFrames();
-                                Do(/*main._ambientWindSys.Update()*/);
+                                Dos(/*main._ambientWindSys.Update()*/);
                                 Main.instance.TilesRenderer.Update();
                                 Main.instance.WallsRenderer.Update();
                                 if(/*Main.*/cameraLerp > 0f) {
@@ -3439,7 +3496,7 @@ public class Learning {
                             Main.ChromaPainter.Update();
                         }
                     });//这里会捕捉所有报错并Log出来(Logging.Terraria.Error(e))
-                    Do(() => CinematicManager.Instance.Update(gameTime), () => {
+                    Dos(() => CinematicManager.Instance.Update(gameTime), () => {
 
                     });
                     #region 网络发包
@@ -3456,12 +3513,12 @@ public class Learning {
                     _isDrawingOrUpdating = false;
                 }
 
-                Do(/*base.Update(gameTime)*/);
+                Dos(/*base.Update(gameTime)*/);
                 Do(/*main.ConsumeAllMainThreadActions()*/() => {
 
                 });
                 if(GameAskedToQuit) {   //Main.GameAskedToQuit
-                    Do(/*Main.QuitGame()*/);
+                    Dos(/*Main.QuitGame()*/);
                 }
             }
             public static void ShowMainUpdateAudio() {
@@ -3471,9 +3528,9 @@ public class Learning {
                 #region params
                 Stopwatch _worldUpdateTimeTester = default;
                 #endregion
-                Do(/*main.UpdateParticleSystems()*/);
+                Dos(/*main.UpdateParticleSystems()*/);
                 Main.tileSolid[379] = false;
-                Do(/*NPCShopDatabase.Test()*/);
+                Dos(/*NPCShopDatabase.Test()*/);
                 #region UpdatePlayers
                 SystemLoader.PreUpdatePlayers();    //ModSystems.PreUpdatePlayers()
                 int num = 0;
@@ -3484,11 +3541,11 @@ public class Learning {
                     if(!Main.player[i].active) {
                         continue;
                     }
-                    Do(() => Main.player[i].Update(i), () => {
+                    Dos(() => Main.player[i].Update(i), () => {
 
                     });
                 }
-                Main.player.Where(p => p.active).WithIndex().ForeachDo(p => Do(() => p.Item2.Update(p.Item1), () => {
+                Main.player.Where(p => p.active).WithIndex().ForeachDo(p => Dos(() => p.Item2.Update(p.Item1), () => {
                     //player.Update():
                     //重置运动相关的参数(runAcceleration, gravity等)
                     //设置运动相关的参数(根据shimmerWet, wet, vortexDebuff等值)
@@ -3499,7 +3556,7 @@ public class Learning {
                 }));
                 SystemLoader.PostUpdatePlayers();   //ModSystems.PostUpdatePlayers()
                 #endregion
-                Do(/*Main._gameUpdateCount++*/);
+                Dos(/*Main._gameUpdateCount++*/);
                 #region UpdateNPCs
                 SystemLoader.PreUpdateNPCs();
                 NPC.RevengeManager.Update();
@@ -3527,7 +3584,7 @@ public class Learning {
                     Main.player[j].nearbyActiveNPCs = 0f;
                     Main.player[j].townNPCs = 0f;
                 }
-                Do(/*Main.CheckBossIndexes()*/);
+                Dos(/*Main.CheckBossIndexes()*/);
                 Main.sittingManager.ClearNPCAnchors();
                 Main.sleepingManager.ClearNPCAnchors();
                 NPC.taxCollector = false;
@@ -3547,13 +3604,13 @@ public class Learning {
                     NPC.empressRageMode = false;
                 }
 
-                if(Main.netMode != 1 && Main.afterPartyOfDoom && !BirthdayParty.PartyIsUp) {
+                if(Main.netMode != NetmodeID.MultiplayerClient && Main.afterPartyOfDoom && !BirthdayParty.PartyIsUp) {
                     for(int k = 0; k < 200; k++) {
                         NPC nPC = Main.npc[k];
-                        if(nPC.active && nPC.townNPC && nPC.type != 37 && nPC.type != 453 && nPC.type != 368) {
-                            Do(/*nPC.StrikeNPCNoInteraction(9999, 10f, -nPC.direction)*/);
+                        if(nPC.active && nPC.townNPC && nPC.type != NPCID.OldMan && nPC.type != NPCID.SkeletonMerchant && nPC.type != NPCID.TravellingMerchant) {
+                            Dos(/*nPC.StrikeNPCNoInteraction(9999, 10f, -nPC.direction)*/);
                             if(Main.netMode == NetmodeID.Server) {
-                                NetMessage.SendData(28, -1, -1, null, k, 9999f, 10f, -nPC.direction);
+                                NetMessage.SendData(MessageID.DamageNPC, -1, -1, null, k, 9999f, 10f, -nPC.direction);
                             }
                         }
                     }
@@ -3610,7 +3667,7 @@ public class Learning {
                 SystemLoader.PreUpdateProjectiles();
                 LockOnHelper.SetUP();
                 Main.CurrentFrameFlags.HadAnActiveInteractibleProjectile = false;
-                Do(/*main.PreUpdateAllProjectiles()*/);
+                Dos(/*main.PreUpdateAllProjectiles()*/);
                 for(int n = 0; n < 1000; n++) {
                     Main.ProjectileUpdateLoopIndex = n;
                     if(Main.ignoreErrors) {
@@ -3627,14 +3684,14 @@ public class Learning {
                 }
 
                 Main.ProjectileUpdateLoopIndex = -1;
-                Do(/*main.PostUpdateAllProjectiles()*/);
+                Dos(/*main.PostUpdateAllProjectiles()*/);
                 LockOnHelper.SetDOWN();
                 SystemLoader.PostUpdateProjectiles();
                 #endregion
                 #region UpdateItems
                 SystemLoader.PreUpdateItems();  //ModSystems.PreUpdateItems()
                 Item.numberOfNewItems = 0;
-                Main.item.WithIndex().ForeachDo(p => Do(() => p.Item2.UpdateItem(p.Item1), () => {
+                Main.item.WithIndex().ForeachDo(p => Dos(() => p.Item2.UpdateItem(p.Item1), () => {
 
                 }));
                 SystemLoader.PostUpdateItems(); //ModSystems.PostUpdateItems()
@@ -3650,7 +3707,7 @@ public class Learning {
                 }
                 #region UpdateTime
                 SystemLoader.PreUpdateTime();
-                Do(/*Main.UpdateTime()*/);
+                Dos(/*Main.UpdateTime()*/);
                 SystemLoader.PostUpdateTime();
                 #endregion
                 Main.tileSolid[379] = true;
@@ -3660,15 +3717,15 @@ public class Learning {
                 #region Update world and invasion
                 if(Main.netMode != NetmodeID.MultiplayerClient) {
                     WorldGen.UpdateWorld();
-                    Do(/*Main.UpdateInvasion()*/);
+                    Dos(/*Main.UpdateInvasion()*/);
                 }
                 #endregion
                 #region Update server and client
                 if(Main.netMode == NetmodeID.Server) {
-                    Do(/*Main.UpdateServer()*/);
+                    Dos(/*Main.UpdateServer()*/);
                 }
                 if(Main.netMode == NetmodeID.MultiplayerClient) {
-                    Do(/*Main.UpdateClient()*/);
+                    Dos(/*Main.UpdateClient()*/);
                 }
                 #endregion
                 SystemLoader.PostUpdateEverything();    //ModSystems.PostUpdateEverything()
@@ -3688,7 +3745,7 @@ public class Learning {
                 #endregion
 
                 Chest.UpdateChestFrames();
-                Do(/*main._ambientWindSys.Update()*/);
+                Dos(/*main._ambientWindSys.Update()*/);
                 Main.instance.TilesRenderer.Update();
                 Main.instance.WallsRenderer.Update();
             }
@@ -3910,14 +3967,14 @@ public class Learning {
                 /// </summary>
                 public override bool IsLoadingEnabled(Mod mod) => true;
                 public override void Load() => base.Load(); //在加载时做一些事情
-                public override void SetStaticDefaults() => Do();   //用以设置一些不会改变的数据
-                public override void Unload() => Do();  //在卸载时做一些事情
+                public override void SetStaticDefaults() => Dos();   //用以设置一些不会改变的数据
+                public override void Unload() => Dos();  //在卸载时做一些事情
 
                 #region idk
-                public override void SetupContent() => Do();
-                protected override void InitTemplateInstance() => Do();
-                protected override void Register() => Do();
-                protected override void ValidateType() => Do();
+                public override void SetupContent() => Dos();
+                protected override void InitTemplateInstance() => Dos();
+                protected override void Register() => Dos();
+                protected override void ValidateType() => Dos();
                 #endregion
             }
         }
@@ -3936,15 +3993,15 @@ public class Learning {
                     NewInstance(new Item());    //为item新建一个ModItem(但好像并不SetDefaults)
                     ItemLoader.GetItem(itemId);     //获取一个ModItem的模板, 不会关联Item, 不会SetDefaults, 不推荐实际使用, 不如用new Item(itemId).ModItem, 这里只是为了获得模板
                 }
-                public override void SetStaticDefaults() => Do();   //重写SetStaticDefaults()以在初始化完成后做一些事情
-                public override void SetDefaults() => Do(); //重写SetDefaults()以在进入游戏时以及创建一个物品时为这个物品做一些事情
-                public override void AddRecipes() => Do();  //重写AddRecipes()以在添加配方阶段做一些事情(一般是添加配方)
+                public override void SetStaticDefaults() => Dos();   //重写SetStaticDefaults()以在初始化完成后做一些事情
+                public override void SetDefaults() => Dos(); //重写SetDefaults()以在进入游戏时以及创建一个物品时为这个物品做一些事情
+                public override void AddRecipes() => Dos();  //重写AddRecipes()以在添加配方阶段做一些事情(一般是添加配方)
                 public static Recipe_cls recipe_cls;
                 /// <summary>
                 /// 重写ModifyShootStats(...)以修改伤害与发射位置等等
                 /// </summary>
-                public override void ModifyShootStats(Player player, ref Vector2 position, ref Vector2 velocity, ref int type, ref int damage, ref float knockback) => Do();
-                public override void ExtractinatorUse(int extractinatorBlockType, ref int resultType, ref int resultStack) => Do();  //自定义提炼机使用
+                public override void ModifyShootStats(Player player, ref Vector2 position, ref Vector2 velocity, ref int type, ref int damage, ref float knockback) => Dos();
+                public override void ExtractinatorUse(int extractinatorBlockType, ref int resultType, ref int resultStack) => Dos();  //自定义提炼机使用
             }
         }
         public class ModProjectile_cls {
@@ -4001,9 +4058,10 @@ public class Learning {
 #else
             public static GlobalType<GlobalItem> globalType;
 #endif
-            public static string appliesToEntity_func = @"重写AppliesToEntity(entity, bool lateInstiation)来判断是否给对应物品附加上此类
+            public static string appliesToEntity_func = """
+                重写AppliesToEntity(entity, bool lateInstiation)来判断是否给对应物品附加上此类
                 lateInstiation表示是否在SetDefaults之后检查, 若需要SetDefaults做出更改, 则需只在lateInstiation为真时返回真
-            ";
+                """;
         }
         public class GlobalItem_cls {
             public static GlobalItem globalItem;
@@ -4195,10 +4253,11 @@ public class Learning {
         #endregion
         #region namespace Terraria.Localization
         public class Language_cls {
-            public static string getTextValue = @"Language.GetTextValue(key)以获得特定文本, 在不同语言时会自动使用不同翻译
+            public static string getTextValue = """
+                Language.GetTextValue(key)以获得特定文本, 在不同语言时会自动使用不同翻译
                 传入的key为.hjson文件中对应的项(用'.'连接), .hjson文件应位于Localization文件夹下, 英文为en-US.hjson, 中文为zh-Hans.hjson
                 在[Label(str)], [Tooltip(str)], [Header(str)]等地方可以直接传入第一个字符为$的字符串以获得对应文本(是""$...""不是$""..."")
-            ";
+                """;
             public static void ShowLanguage() {
                 Show(Language.ActiveCulture);       //游戏的语言
                 Show(Language.GetTextValue("Mods.TigerTestMod.[...]"));
@@ -4233,9 +4292,9 @@ public class Learning {
         #endregion
         #region namespace Mono.Cecil.Cil
         public class OpCodes_static_cls {
-            public static string tips = @"
+            public static string tips = """
                 在IL中压栈通常以ld开头, 出栈则以st开头
-            ";
+                """;
             public static void ShowOpCodes() {
                 Show(OpCodes.Add);              //将计算堆栈上的两个值相加并将结果推送到计算堆栈上
                 Show(OpCodes.Nop);              //空语句
@@ -4250,6 +4309,141 @@ public class Learning {
         #endregion
         #endregion
     }
+    #region 额外研究
+    public class 可空类型Nullable {
+#nullable enable
+        public static string intro = """
+            关于各种 ? 的事情
+            """;
+        public static string 可为空的值类型 = """
+            给值类型后加上?变为可为空的值类型(int? i = null;)(实际上会变为结构体Nullable<int>)
+            此类型基本可以正常的当作原类型使用, 只是有空值时计算结果一般为空(2 + (int?)null -> null)
+            特别的, 做大小于(包括不大于和不小于)运算时, 若有空值则必为假(此时小于等于不再与小于或者等于等效)
+            而等于和不等于则会考虑是否为空的情况
+            如果是必须使用原类型的场合(如赋值, 传参)可以直接强制类型转换, 但若为空会报错
+            可以直接将原来的值类型的值赋给可为空的值类型
+            """;
+        public static void ShowNullableValueType() {
+            Type nullableHelperType = typeof(Nullable);
+            Type nullableType = typeof(Nullable<int>);
+            int? a = null, b = 3, c = null;
+            int i = 5;
+            Console.WriteLine(a + b);  // -> null
+            Console.WriteLine(a + i);  // -> null
+            Console.WriteLine(i + b);  // -> 8
+
+            Console.WriteLine(a < i);  // -> false
+            Console.WriteLine(a >= i);  // -> false
+            Console.WriteLine(a >= c);  // -> false
+            Console.WriteLine(a == c);  // -> true
+            Console.WriteLine(b < i);  // -> true
+
+            i = (int)b; // -> i = 3
+            i = (int)a; // -> 报错
+        }
+        public static string 空条件运算符 = """
+            a?.b 以安全的使用一个实例a的成员b, 当此实例为空时, 不会调用此成员, 而且返回值为空(若原来为值类型, 则会变为可为空的值类型)
+                也叫做null传播
+            a?[i] a为空时返回空, 否则按正常取索引处理(超界还是会报错)
+            a ?? b 为当a为空时选用b, a与b一般得是相同的类型, 或a是可为空的值类型, b为此值类型(此时返回值为值类型而不为空)
+                ?? 后也可以直接用throw语句, 代表若前者为空就直接报错, 相当于在其后加!
+            a ??= b 当a为空时将b赋值给它
+            """;
+        public static class ShowNullOperator {
+            public static void Show() {
+                AClass? a = null;
+                var intValue = a?.intValue; //intValue = (int?)null
+                var stringValue = a?.stringValue; //stringValue = (string)null
+                int i = 1;
+                a?.SetIntValue(i = 5); //什么都不会发生, 赋值语句也不会被执行
+
+                int? ni = null, nj = 6, nk = null;
+                Console.WriteLine(ni ?? nj); // ->6
+                Console.WriteLine(ni ?? nk); // ->null
+                i = ni ?? 0; // ni为空则将0赋给i, 这样就不用强制类型转换了
+                ni ??= nj; //ni为空时将nj赋给它
+            }
+            public class AClass {
+                public int intValue;
+                public string? stringValue;
+                public int SetIntValue(int value) {
+                    return intValue = value;
+                }
+            }
+        }
+        public static string 可为空的引用类型 = """
+            启用可为空的引用类型:
+                单文件内可以使用 #nullable enable 以启用, disable以禁用, restore以还原默认设置
+                项目内可以设置项目文件中Project.PropertyGroup.Nullable为enable以启用
+                或者:项目设置->生成->常规->可为null的类型
+            启用时可以在引用类型后加?代表它是可以为空的, 而没加则代表此引用类型不会为空
+            这两种类型本质上没有区别, 只是可能有空引用报错的地方都会标注出来
+            如果想要一个变量不被标注(你确保它非空, 但是程序上识别不出来)可以在它后面加!标注
+            """;
+        public static void ShowNullableReferencesType() {
+            string? a = null, a2 = null, a3 = null, a4 = null;
+            string b = null;    //被警告了
+            Show(b.Length);     //虽说这里b本来是string, 不会为空的类型, 但强行赋为了空, 所以还是会给出警告
+            var deleg = void (ref string? s) => s = "123";
+            deleg(ref a);
+            Show(a.Length); //此时a已经非空, 但程序难以检查, 仍然会给警告
+            Show(a.Length); //此时前面已经给出警告了, 若在那里爆了空引用报错, 就不会执行到这里, 所以程序认为这里a肯定非空(...)
+            deleg(ref a2);
+            Show(a2!.Length); //在a后加!会禁用其空引用的检查, 让编译器认为它在这里总是非空的
+            var showString = void (string s) => Do(s);
+            deleg(ref a3);
+            showString(a3);
+            deleg(ref a4);
+            showString(a4!);
+        }
+
+#nullable restore
+    }
+    public class 原始字符串 {
+        public static string intro = """
+            (原来其实也可以在字符串前用@来达到相似的效果, 但并不完善)
+            原始字符串的特征为以3个双引号开始, 以3个双引号结束
+            原始字符串中可以任意换行, 且开始和结束时的换行将被忽略
+            原始字符串没有转义字符, 如\t, \n都会照原样输出, 
+                它们写成普通字符串的形式应该会是"\\t, \\n"
+            同时如上所见单引号和双引号都可以直接打
+            而且当结尾的三引号不与开始的处于同一排时
+                原始字符串的所有字符都应处于结尾三引号起始位置的右侧
+                即与它同缩减的所有空格会被忽略
+                (违反此规则是会报错的)
+            如果想在字符串中使用连续三个或更多的双引号,
+                只需在原始字符串字面上的开始和结束处使用更多双引号包裹即可
+            """;
+        public static string 启用原始字符串 = """
+            如果还没有启用这个特性(于C# 11(.Net 7)时添加)可能要在项目文件(.csproj)中
+                将Project.PropertyGroup.LangVersion设置为latest
+            """;
+        public static string 原始字符串的插值语法 = $$"""
+            在原始字符串前使用$来使用插值语法
+            $的个数代表所需要的{}数: {{1}}
+            """;
+    }
+    public class 传参用特性 {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="expression">
+        /// 使用CallerArgumentExpression以获得对应参数被调用时传入的表达式字符串
+        /// </param>
+        /// <param name="callerLine">使用CallerLineNumber以获得调用时的行数</param>
+        /// <param name="callerMember">使用CallerMemberName以获得调用者的成员名字</param>
+        /// <param name="callerFile">
+        /// 使用CallerFilePath以获得调用者所在的文件的全路径(编译时)
+        /// </param>
+        public static void PrintParExpression(int value,
+            [CallerArgumentExpression(nameof(value))]string expression = null,
+            [CallerLineNumber]int callerLine = 0,
+            [CallerMemberName]string callerMember = null,
+            [CallerFilePath]string callerFile = null) {
+            Console.WriteLine($"{expression} = {value}");
+        }
+    }
+    #endregion
     private static void Show(params object[] objs) {
         Do(objs);
     }
@@ -4257,7 +4451,8 @@ public class Learning {
         Do(objs);
     }
 }
-#pragma warning restore IDE0059 // 不需要赋值
-#pragma warning restore CS0649 // 从未对字段赋值, 字段将一直保持其默认值 null
-#pragma warning restore CS0219 // 变量已被赋值, 但从未使用过它的值
 #pragma warning restore CA2211 // 非常量字段应当不可见
+#pragma warning restore CS0219 // 变量已被赋值, 但从未使用过它的值
+#pragma warning restore CS0649 // 从未对字段赋值, 字段将一直保持其默认值 null
+#pragma warning restore IDE0059 // 不需要赋值
+#pragma warning restore IDE0060 // 删除未使用的参数
