@@ -12,7 +12,8 @@
 #if Terraria143
 using IL.Terraria.GameContent.UI;
 #endif
-using Microsoft.Xna.Framework;
+using ImproveGame.Common.Configs;
+using ImproveGame.Content.Items;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
@@ -20,9 +21,10 @@ using ReLogic.Content;
 using ReLogic.Graphics;
 using ReLogic.OS;
 using System.Collections;
-using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Terraria.Audio;
 using Terraria.Cinematics;
 using Terraria.DataStructures;
@@ -49,10 +51,6 @@ using Terraria.ModLoader.Utilities;
 using Terraria.ObjectData;
 using Terraria.UI;
 using Terraria.Utilities;
-using Terraria.ID;
-using System.Diagnostics;
-using System;
-using System.Runtime.CompilerServices;
 
 namespace TigerLearning;
 
@@ -109,7 +107,7 @@ public class Learning {
                 Item.useTime = 17;
                 Item.maxStack = 30;
                 Item.rare = ItemRarityID.Pink;
-                Item.value = Item.sellPrice(0, 0, 50, 0);
+                Item.value = Item.sellPrice(silver: 50);
 
                 Item.useStyle = ItemUseStyleID.DrinkLiquid;
                 Item.UseSound = SoundID.Item3;      // 喝药的声音
@@ -140,7 +138,7 @@ public class Learning {
 
             // 物品合成表的设置部分
             public override void AddRecipes() {
-                Recipe recipe = CreateRecipe()
+                CreateRecipe()
                     .AddIngredient(ItemID.GoldBar, 5)
                     .AddIngredient(ItemID.IronBar, 5)
                     .AddIngredient(ItemID.Torch, 25)
@@ -334,7 +332,7 @@ public class Learning {
     public class 添加饰品 {
         public class ExampleAccessories : ModItem {
             public static string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
-            public static string 说明 = """需额外准备与类名同名且在对应命名空间下的图片(.png)文件""";
+            public static string 说明 = "需额外准备与类名同名且在对应命名空间下的图片(.png)文件";
 
             public override void SetDefaults() {
                 Item.width = 16;
@@ -347,7 +345,7 @@ public class Learning {
                 Item.defense = 16;
 
                 Item.rare = ItemRarityID.Yellow;
-                Item.value = Item.sellPrice(0, 5, 0, 0);
+                Item.value = Item.sellPrice(gold: 5);
 
                 // 这个属性代表这是专家模式专有物品, 稀有度颜色会是彩虹的！
                 Item.expert = true;
@@ -393,7 +391,7 @@ public class Learning {
         [AutoloadEquip(EquipType.Wings)]
         public class ExampleWings : ModItem {
             public static string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
-            public static string 说明 = """需额外准备名字为 [类名]_Wings 且在对应命名空间下的图片(.png)文件(四帧)""";
+            public static string 说明 = "需额外准备名字为 [类名]_Wings 且在对应命名空间下的图片(.png)文件(四帧)";
             public override void SetDefaults() {
                 Item.width = 22;
                 Item.height = 20;
@@ -403,12 +401,7 @@ public class Learning {
             }
             public override void UpdateAccessory(Player player, bool hideVisual) {
                 #region 在显示翅膀时飞行时间更久
-                if(hideVisual) {
-                    player.wingTimeMax = 50;
-                }
-                else {
-                    player.wingTimeMax = 200;
-                }
+                player.wingTimeMax = hideVisual ? 50 : 200;
                 #endregion
                 player.wingTime = player.wingTimeMax;    //让玩家可以一直飞行, 若写了这句那么只要 wingTimeMax >= 1 就是相同的效果
                 #region 让玩家可以虚空行走
@@ -604,10 +597,9 @@ public class Learning {
             public override void ModifyBuffText(ref string buffName, ref string tip, ref int rare) {
                 int buffIndex = -1, timeLeft = 0;
                 foreach(int i in Range(Main.LocalPlayer.buffType.Length)) {
-                    if(Main.LocalPlayer.buffType[i] == Type) {
-                        buffIndex = i;
-                        break;
-                    }
+                    if (Main.LocalPlayer.buffType[i] != Type) continue;
+                    buffIndex = i;
+                    break;
                 }
                 if(buffIndex != -1) {
                     timeLeft = Main.LocalPlayer.buffTime[buffIndex];
@@ -697,7 +689,6 @@ public class Learning {
                     if(Projectile.timeLeft > 30) {
                         Projectile.timeLeft = 30;
                     }
-                    return;
                 }
             }
         }
@@ -911,9 +902,9 @@ public class Learning {
         }
         public static void 获取贴图(Mount.MountData mountData) {
             if(Main.netMode != NetmodeID.Server) {
-                Show(mountData.backTexture);    //当贴图为 坐骑名_Back.png 时用这个
-                Show(mountData.frontTexture);   //当贴图为 坐骑名_Front.png 时用这个
-                                                //当然也可以两个都用
+                Show(mountData.backTexture);  //当贴图为 坐骑名_Back.png 时用这个
+                Show(mountData.frontTexture); //当贴图为 坐骑名_Front.png 时用这个
+                                              //当然也可以两个都用
             }
         }
     }
@@ -956,14 +947,14 @@ public class Learning {
                 //ItemDrop = ItemID.DirtBlock;          //挖掉以后出来的物品, 现在会自动设置
                 AddMapEntry(new Color(114, 514, 114), Language.GetText("Mods.ExampleMod.Tiles.ExampleTile.MapEntry"));  //在地图上显示的颜色和名字
 
-                TileObjectData.newTile.CopyFrom(TileObjectData.Style1x2Top);    //自动设置成只能挂在物块下, 并且放置物块的时候鼠标对于物块的位置是上面一格, 并且上面的物块被敲掉, 这个也会掉落
-                TileObjectData.newTile.Width = 3;   //把物块变成 3x1 格
-                TileObjectData.newTile.Height = 1;
-                TileObjectData.newTile.CoordinateHeights = new int[] { 16, 16, 16 };    //每一块的高度
-                TileObjectData.newTile.DrawYOffset = 0;     //如果你想把底部嵌入下面的方块的话, 就要使用DrawYOffset, 意思是绘制时向下偏移多少像素
-                TileObjectData.newTile.DrawXOffset = 0;     //这个十分有趣, 在光标显示中是你填的偏移像素, 但是, 你一放下就会变回原样
-                TileObjectData.newTile.CoordinateWidth = 16;    //所有小块横长全部改为16
-                TileObjectData.newTile.CoordinatePadding = 2;   //意思是你的物块帧图每16格就空2像素
+                TileObjectData.newTile.CopyFrom(TileObjectData.Style1x2Top); //自动设置成只能挂在物块下, 并且放置物块的时候鼠标对于物块的位置是上面一格, 并且上面的物块被敲掉, 这个也会掉落
+                TileObjectData.newTile.Width             = 3;                //把物块变成 3x1 格
+                TileObjectData.newTile.Height            = 1;
+                TileObjectData.newTile.CoordinateHeights = new [] { 16, 16, 16 }; //每一块的高度
+                TileObjectData.newTile.DrawYOffset       = 0;                     //如果你想把底部嵌入下面的方块的话, 就要使用DrawYOffset, 意思是绘制时向下偏移多少像素
+                TileObjectData.newTile.DrawXOffset       = 0;                     //这个十分有趣, 在光标显示中是你填的偏移像素, 但是, 你一放下就会变回原样
+                TileObjectData.newTile.CoordinateWidth   = 16;                    //所有小块横长全部改为16
+                TileObjectData.newTile.CoordinatePadding = 2;                     //意思是你的物块帧图每16格就空2像素
                                                                 // ...
                 #region TileObjectData扩展
                 TileObjectData.newTile.UsesCustomCanPlace = false;  //这个属性是决定这个物块上是否不能再放其他方块
@@ -1134,40 +1125,40 @@ public class Learning {
         }
         public static void 常用的生成条件(NPCSpawnInfo spawnInfo) {
             #region 环境
-            Show(SpawnCondition.Corruption);    //腐化
-            Show(SpawnCondition.Crimson);       //猩红
-            Show(spawnInfo.Granite);            //花岗岩
-            Show(spawnInfo.Marble);             //大理石
-            Show(spawnInfo.DesertCave);         //沙漠洞穴
-            Show(SpawnCondition.JungleTemple);  //神庙
-            Show(spawnInfo.Lihzahrd);           //神庙内(蜥蜴的生成条件)
-            Show(spawnInfo.SpiderCave);         //蜘蛛洞穴
-            Show(spawnInfo.Water);              //水中
-            Show(SpawnCondition.Ocean);         //海洋
-            Show(spawnInfo.Sky);                //太空
-            Show(SpawnCondition.Sky);           //太空
-            Show(SpawnCondition.Overworld);     //地上
-            Show(SpawnCondition.Underground);   //地下
-            Show(SpawnCondition.Cavern);        //洞穴
-            Show(SpawnCondition.Underworld);    //地狱
+            Show(SpawnCondition.Corruption);                        //腐化
+            Show(SpawnCondition.Crimson);                           //猩红
+            Show(spawnInfo.Granite);                                         //花岗岩
+            Show(spawnInfo.Marble);                                          //大理石
+            Show(spawnInfo.DesertCave);                                      //沙漠洞穴
+            Show(SpawnCondition.JungleTemple);                      //神庙
+            Show(spawnInfo.Lihzahrd);                                        //神庙内(蜥蜴的生成条件)
+            Show(spawnInfo.SpiderCave);                                      //蜘蛛洞穴
+            Show(spawnInfo.Water);                                           //水中
+            Show(SpawnCondition.Ocean);                             //海洋
+            Show(spawnInfo.Sky);                                             //太空
+            Show(SpawnCondition.Sky);                               //太空
+            Show(SpawnCondition.Overworld);                         //地上
+            Show(SpawnCondition.Underground);                       //地下
+            Show(SpawnCondition.Cavern);                            //洞穴
+            Show(SpawnCondition.Underworld); //地狱
             #endregion
             #region 事件
-            Show(spawnInfo.Invasion);           //在入侵中
-            Show(Main.invasionType);            //入侵的类型, 可以辅以InvasionID
-            Show(SpawnCondition.GoblinArmy);    //哥布林
-            Show(SpawnCondition.Pirates);       //海盗
-            Show(SpawnCondition.MartianMadness);//火星人
-            Show(SpawnCondition.OldOnesArmy);   //旧日军团(撒旦军团)
-            Show(SpawnCondition.PumpkinMoon);   //南瓜月
-            Show(Main.bloodMoon);               //血月
-            Show(Main.raining);                 //在下雨
-            Show(Sandstorm.Happening);          //沙暴是否正在发生
-            Show(SpawnCondition.SandstormEvent);//沙暴是否正在发生(不知道要不要额外判在不在沙漠中)
+            Show(spawnInfo.Invasion);                                            //在入侵中
+            Show(Main.invasionType);                                             //入侵的类型, 可以辅以InvasionID
+            Show(SpawnCondition.GoblinArmy);                            //哥布林
+            Show(SpawnCondition.Pirates);                               //海盗
+            Show(SpawnCondition.MartianMadness);                        //火星人
+            Show(SpawnCondition.OldOnesArmy);                           //旧日军团(撒旦军团)
+            Show(SpawnCondition.PumpkinMoon);                           //南瓜月
+            Show(Main.bloodMoon);                                                //血月
+            Show(Main.raining);                                                  //在下雨
+            Show(Sandstorm.Happening);                                           //沙暴是否正在发生
+            Show(SpawnCondition.SandstormEvent); //沙暴是否正在发生(不知道要不要额外判在不在沙漠中)
             #endregion
 
             Show(Main.dayTime);     //是否是白天
             Show(NPC.AnyNPCs(NPCID.IceGolem));  //是否有冰雪巨人
-            Show(spawnInfo.SpawnTileX, spawnInfo.SpawnTileY);     //在什么物块坐标上生成
+            Shows(spawnInfo.SpawnTileX, spawnInfo.SpawnTileY);     //在什么物块坐标上生成
             Show(spawnInfo.SpawnTileType);      //在哪种物块上生成
         }
         public static void 其他() {
@@ -1181,8 +1172,8 @@ public class Learning {
                 NPCID中的数字对应的是netID, 一般请将这两者作比较
                 当然在原版出现这种情况时额外的netID都是负数, 所以也可以判这个来确定是否有这种情况
                 """);
-            Show(npc.type, npc.netID);
-            Show(NPCID.BlueSlime, NPCID.GreenSlime, NPCID.RedSlime, NPCID.PurpleSlime);
+            Shows(npc.type, npc.netID);
+            Shows(NPCID.BlueSlime, NPCID.GreenSlime, NPCID.RedSlime, NPCID.PurpleSlime);
         }
 
         [AutoloadHead]
@@ -1435,7 +1426,7 @@ public class Learning {
             rule = new FewFromOptionsDropRule(2, 5, 4, ItemID.Torch, ItemID.BlueTorch, ItemID.RedTorch);    //同上
             #region 不同模式下的掉落
             ItemDropRule.NormalvsExpert(ItemID.Torch, 4, 2);    //在普通模式中以 1/4 的概率掉落, 专家模式中为 1/2
-            rule = new DropBasedOnExpertMode(ruleForNormalMode, ruleForExpertMode);    //在普通模式和专家模式应用不同规则
+            rule = new DropBasedOnExpertMode(ruleForNormalMode, ruleForExpertMode); //在普通模式和专家模式应用不同规则
             rule = new DropBasedOnMasterAndExpertMode(ruleForDefault, ruleForExpertMode, ruleForMasterMode);    //在三种模式下应用三种规则
             rule = new DropBasedOnMasterMode(ruleForDefault, ruleForMasterMode);    //在非大师模式和大师模式应用不同规则
             #endregion
@@ -1493,7 +1484,7 @@ public class Learning {
         }
         public static void 查询原版掉落代码() {
             //NPC掉落代码位于Terraria.GameContent.ItemDropRules.ItemDropDatabase中
-            Show(typeof(ItemDropDatabase));
+            Show<ItemDropDatabase>();
             //摸彩袋掉落的源码位于Terraria/GameContent/ItemDropRules/ItemDropDatabase.TML.cs
         }
         public static void 其他() {
@@ -1691,7 +1682,7 @@ public class Learning {
             在build.txt中modReferences中填的mod名表示强{依赖/引用}, weakReferences表示弱{依赖/引用}
             在强依赖时, 依赖的模组肯定会先于本模组被加载, 否则可能在之后加载或者根本不会加载
             若要指定最低版本, 则在build.txt的references的mod名后加@[版本号], 如 modReferences = ExampleMod@1.0.0.0
-            可以将引用的mod的dll添加到VS中获得代码补全
+            可以将引用的mod的dll添加到项目依赖中获得代码补全
             """;
         public static void 获取其他模组的东西() {
             if(ModLoader.TryGetMod("CalamityMod", out Mod calamity)) {
@@ -1709,12 +1700,51 @@ public class Learning {
                 bossChecklist.Call("AddBoss", "boss name", bossValue, bossDowned);
             }
         }
+        public static class 直接使用其他mod的类 {
+            public static class 强引用 {
+                public static string intro = """
+                    在build.txt中的modReferences中填上需要强引用的mod名(后加 @[版本号] 可以指定最低版本)
+                    将引用的mod的dll添加到项目的程序集依赖, 如果有源码可以直接将其添加到项目的项目依赖
+                    然后就可以直接使用对应mod的公开的类了
+                    (然而如果实在要用到私有或内部(internal)的类的话仍需通过反射来调用)
+                    """;
+                public static void ShowModReferences() {
+                    #region 以强引用更好的体验为例, 由于它开源所以我就直接使用它源码了
+                    string note = """
+                        如果没有源码也可以在项目文件(.csproj)中添加
+                        Project.ItemGroup.Reference(Include="ImproveGame").HintPath: lib\ImproveGame.dll
+                        (我在那里注释好了的)
+                        """;
+                    var improveGame = ImproveGame.ImproveGame.Instance; //此模组内置获得实例的方法
+                        //注意此属性是对方Load时添加的, 如果为弱引用, 则在Load阶段不能保证有值, 不过此处为强引用就无所谓了
+                        //若模组不内置获得实例的方法, 也可以通过下面这句获取
+                    //ImproveGame.ImproveGame improveGame = (ImproveGame.ImproveGame)ModLoader.GetMod(nameof(ImproveGame.ImproveGame));)
+                    var improveConfigs = (ImproveConfigs)improveGame.GetConfig(nameof(ImproveConfigs)); //获取其配置
+                    Show(improveConfigs.AlchemyGrassGrowsFaster); //获得其配置中的一项
+
+                    //活得玩家背包第一个旗帜盒
+                    BannerChest bannerChest = Main.LocalPlayer.inventory.Select(i => i?.ModItem as BannerChest).FirstOrDefault(bc => bc != null);
+                    bannerChest?.StoredBanners.ForEach(i => Show(i)); //遍历它里面的每一个旗帜, 可以对它们做一些事情, 或依据它们做一些事情
+                    #endregion
+                }
+            }
+
+            [JITWhenModsEnabled("")]
+            public static class 弱引用 {
+                public static string intro = """
+                    在build.txt中的weakReferences中填上需要弱引用的mod名(后加 @[版本号] 可以指定最低版本)
+                    将引用的mod的dll添加到项目的程序集依赖, 如果有源码可以直接将其添加到项目的项目依赖
+                    然后就可以直接使用对应mod的公开的类了
+                    (然而如果实在要用到私有或内部(internal)的类的话仍需通过反射来调用)
+                    """;
+            }
+        }
     }
 
     public class UI制作 {
         public class ExampleUI : UIState {
             public static string 参考 = "UI的制作 https://fs49.org/2020/03/27/ui%e7%9a%84%e5%88%b6%e4%bd%9c/";
-            public bool visible = false;
+            public bool visible;
             public override void OnInitialize() {
                 #region 实例化一个面板，并且将其注册到UIState
                 //实例化一个面板
@@ -1939,7 +1969,7 @@ public class Learning {
             //获得方法信息, 其中flags可省略, 但省略后只能获得公共方法,下同
             MethodInfo methodInfo = type.GetMethod("MethodName", flags);
             //通过传入Type数组可规定参数类型
-            type.GetMethod("DamageVar", flags, new Type[] { typeof(float), typeof(float) });
+            type.GetMethod("DamageVar", flags, new [] { typeof(float), typeof(float) });
             #region 获得参数信息
             //可以通过GetParameters获得参数的信息
             ParameterInfo[] parameterInfos = methodInfo.GetParameters();
@@ -2889,7 +2919,7 @@ public class Learning {
                                 if (Main.fpsTimer.ElapsedMilliseconds >= 1000) {
                                     Main.dedServCount1 += Main.updatesCountedForFPS;
                                     Main.dedServCount2++;
-                                    float num2 = (float)Main.dedServCount1 / (float)Main.dedServCount2;
+                                    float num2 = Main.dedServCount1 / (float)Main.dedServCount2;
                                     Console.WriteLine(Main.updatesCountedForFPS + "  (" + num2 + ")");
                                     Main.updatesCountedForFPS = 0;
                                     Main.fpsTimer.Restart();
@@ -2933,11 +2963,11 @@ public class Learning {
 
                             Main.updatesCountedForFPS++;
                             if (Main.fpsTimer.ElapsedMilliseconds >= 1000) {
-                                if ((float)Main.fpsCount >= 30f + 30f * Main.gfxQuality) {
+                                if (Main.fpsCount >= 30f + 30f * Main.gfxQuality) {
                                     Main.gfxQuality += Main.gfxRate;
                                     Main.gfxRate += 0.005f;
                                 }
-                                else if ((float)Main.fpsCount < 29f + 30f * Main.gfxQuality) {
+                                else if (Main.fpsCount < 29f + 30f * Main.gfxQuality) {
                                     Main.gfxRate = 0.01f;
                                     Main.gfxQuality -= 0.1f;
                                 }
@@ -3008,8 +3038,8 @@ public class Learning {
                                 Main.gfxQuality = 0f;
 
                             Main.maxDustToDraw = (int)(6000f * (Main.gfxQuality * 0.7f + 0.3f));
-                            if ((double)Main.gfxQuality < 0.9)
-                                Main.maxDustToDraw = (int)((float)Main.maxDustToDraw * Main.gfxQuality);
+                            if (Main.gfxQuality < 0.9)
+                                Main.maxDustToDraw = (int)(Main.maxDustToDraw * Main.gfxQuality);
 
                             if (Main.maxDustToDraw < 1000)
                                 Main.maxDustToDraw = 1000;
@@ -3017,7 +3047,7 @@ public class Learning {
                             Gore.goreTime = (int)(600f * Main.gfxQuality);
                             if (!WorldGen.gen) {
                                 Liquid.cycles = (int)(17f - 10f * Main.gfxQuality);
-                                Liquid.curMaxLiquid = (int)((double)Liquid.maxLiquid * 0.25 + (double)Liquid.maxLiquid * 0.75 * (double)Main.gfxQuality);
+                                Liquid.curMaxLiquid = (int)(Liquid.maxLiquid * 0.25 + Liquid.maxLiquid * 0.75 * Main.gfxQuality);
                                 if (Main.Setting_UseReducedMaxLiquids)
                                     Liquid.curMaxLiquid = (int)(2500f + 2500f * Main.gfxQuality);
                             }
@@ -3027,13 +3057,13 @@ public class Learning {
                                 Main.drawSkip = false;
                             }
 
-                            if ((double)Main.gfxQuality < 0.2)
+                            if (Main.gfxQuality < 0.2)
                                 LegacyLighting.RenderPhases = 8;
-                            else if ((double)Main.gfxQuality < 0.4)
+                            else if (Main.gfxQuality < 0.4)
                                 LegacyLighting.RenderPhases = 7;
-                            else if ((double)Main.gfxQuality < 0.6)
+                            else if (Main.gfxQuality < 0.6)
                                 LegacyLighting.RenderPhases = 6;
-                            else if ((double)Main.gfxQuality < 0.8)
+                            else if (Main.gfxQuality < 0.8)
                                 LegacyLighting.RenderPhases = 5;
                             else
                                 LegacyLighting.RenderPhases = 4;
@@ -3204,7 +3234,7 @@ public class Learning {
 
                         SystemLoader.PreUpdateEntities();
                         if(Main.netMode != NetmodeID.Server) {
-                            if((double)Main.screenPosition.Y < Main.worldSurface * 16.0 + 16.0) {
+                            if(Main.screenPosition.Y < Main.worldSurface * 16.0 + 16.0) {
                                 Star.UpdateStars();
                                 Cloud.UpdateClouds();
                             }
@@ -3278,6 +3308,7 @@ public class Learning {
                                         NPC.SpawnNPC();
                                     }
                                     catch {
+                                        // ignored
                                     }
 
                                     if(Main.remixWorld) {
@@ -3482,7 +3513,7 @@ public class Learning {
                                 if(/*Main.*/cameraLerp > 0f) {
                                     /*Main.*/cameraLerpTimer++;
                                     if(cameraLerpTimer >= /*Main.*/cameraLerpTimeToggle) {
-                                        cameraLerp += (float)((cameraLerpTimer - cameraLerpTimeToggle) / 3 + 1) * 0.001f;
+                                        cameraLerp += ((cameraLerpTimer - cameraLerpTimeToggle) / 3 + 1) * 0.001f;
                                     }
 
                                     if(cameraLerp > 1f) {
@@ -3569,6 +3600,7 @@ public class Learning {
                         NPC.SpawnNPC();
                     }
                     catch {
+
                     }
 
                     if(Main.remixWorld) {
@@ -3796,9 +3828,9 @@ public class Learning {
             public static RecipeGroup recipeGroup;
             public static void ShowRecipeGroup() {
                 string name = null;
-                Show(RecipeGroup.recipeGroupIDs);   //从RecipeGroup的名字转化为id
-                Show(RecipeGroup.recipeGroups);     //冲id转化为RecipeGroup
-                RecipeGroup.RegisterGroup(name, recipeGroup);     //加载这个合成组, 返回此合成组id(?)
+                Show(RecipeGroup.recipeGroupIDs);                      //从RecipeGroup的名字转化为id
+                Show(RecipeGroup.recipeGroups); //冲id转化为RecipeGroup
+                RecipeGroup.RegisterGroup(name, recipeGroup);                    //加载这个合成组, 返回此合成组id(?)
 
             }
         }
@@ -3878,7 +3910,7 @@ public class Learning {
             public static void NewTile2x2() {
                 int tileType = 0;
                 TileObjectData.newTile.CopyFrom(TileObjectData.Style2x2);
-                TileObjectData.newTile.CoordinateHeights = new int[2] { 16, 18 };
+                TileObjectData.newTile.CoordinateHeights = new [] { 16, 18 };
                 TileObjectData.newTile.StyleHorizontal = true; // Optional, if you add more placeStyles for the item 
                 TileObjectData.addTile(tileType);
             }
@@ -3890,7 +3922,7 @@ public class Learning {
                 Show(ItemID.None);                  //获得一个原版物品的id
             }
             public class Sets_cls {
-                public static void ShowSets() {
+                public static void Showets() {
                     Show(ItemID.Sets.BossBag);      //下标对应物品id, 判断一个物品是否是宝藏袋, 也可设置一个物品是否是宝藏袋, 会影响是否会开出开发者套装
                     Show(ItemID.Sets.PreHardmodeLikeBossBag);   //是否为肉前宝藏袋
                     Show(ItemID.Sets.CatchingTool); //是否可以捕捉小动物
@@ -3956,10 +3988,10 @@ public class Learning {
             public static ModType modType;
             public abstract class DocumentModType : ModType {
                 public void ShowModType() {
-                    Show(Mod);  //获得本MOD
-                    Show(Name); //内部名字
-                    Show(FullName);     //包含mod名的全名, mod名和物品名似乎是以 '/' 划分
-                    Show(PrettyPrintName());    //展示一个好看的名字(暂不清楚效果)
+                    Show(Mod);               //获得本MOD
+                    Show(Name);              //内部名字
+                    Show(FullName);          //包含mod名的全名, mod名和物品名似乎是以 '/' 划分
+                    Show(PrettyPrintName()); //展示一个好看的名字(暂不清楚效果)
                 }
                 /// <summary>
                 /// 若返回false则这个东西不会被加载(默认true)
@@ -4181,10 +4213,10 @@ public class Learning {
                 npcShop.InsertBefore(entry, new Item(itemID));  //强烈建议配合GetEntry使用
                 npcShop.InsertAfter(targetItemID, itemID);      //与上面那个一样也有三个重载
 
-                npcShop.GetEntry(targetItemID);     //获得对应物品id的Entry
-                npcShop.AllowFillingLastSlot();     //让此商店允许填充最后一格
+                npcShop.GetEntry(targetItemID); //获得对应物品id的Entry
+                npcShop.AllowFillingLastSlot(); //让此商店允许填充最后一格
                 Show(npcShop.FillLastSlot);     //看看此商店是否允许填充最后一格
-                Show(npcShop.Entries);      //查看所有Entry
+                Show(npcShop.Entries);          //查看所有Entry
                 Show(npcShop.ActiveEntries);    //查看所有符合条件的Entry
 
                 npcShop.Register();     //将此商店注册到对应NPC上, 这样它才真的有这个商店
@@ -4206,6 +4238,7 @@ public class Learning {
                 tagCompound.Add("tag3", new List<int>() { 1, 2 });      //添加
                 tagCompound.Set("tag3", new List<int>() { 1, 2 }, true);//设置
                 Show(tagCompound.Get<List<int>>("tag3"));               //获取指定类型
+                Show(tagCompound.Get<List<int>>("tag3")); //获取指定类型
                 //Get实际上引用了TryGet, 而索引器则引用了Get和Set, Add则是非替代地调用Set
                 //总结: 其中效率最高的是TryGet和Set
             }
@@ -4384,17 +4417,17 @@ public class Learning {
             string? a = null, a2 = null, a3 = null, a4 = null;
             string b = null;    //被警告了
             Show(b.Length);     //虽说这里b本来是string, 不会为空的类型, 但强行赋为了空, 所以还是会给出警告
-            var deleg = void (ref string? s) => s = "123";
-            deleg(ref a);
+            void Deleg(ref string? s) => s = "123";
+            Deleg(ref a);
             Show(a.Length); //此时a已经非空, 但程序难以检查, 仍然会给警告
             Show(a.Length); //此时前面已经给出警告了, 若在那里爆了空引用报错, 就不会执行到这里, 所以程序认为这里a肯定非空(...)
-            deleg(ref a2);
+            Deleg(ref a2);
             Show(a2!.Length); //在a后加!会禁用其空引用的检查, 让编译器认为它在这里总是非空的
-            var showString = void (string s) => Do(s);
-            deleg(ref a3);
-            showString(a3);
-            deleg(ref a4);
-            showString(a4!);
+            void ShowString(string s) => Do(s);
+            Deleg(ref a3);
+            ShowString(a3);
+            Deleg(ref a4);
+            ShowString(a4!);
         }
 
 #nullable restore
@@ -4420,7 +4453,7 @@ public class Learning {
             """;
         public static string 原始字符串的插值语法 = $$"""
             在原始字符串前使用$来使用插值语法
-            $的个数代表所需要的{}数: {{1}}
+            $的个数代表所需要的{}数: {{"qqq"}}
             """;
     }
     public class 传参用特性 {
@@ -4444,8 +4477,11 @@ public class Learning {
         }
     }
     #endregion
-    private static void Show(params object[] objs) {
+    private static void Shows(params object[] objs) {
         Do(objs);
+    }
+    private static void Show( object obj) {
+        Do(obj);
     }
     private static void Show<T>(params object[] objs) {
         Do(objs);
