@@ -3,4 +3,4 @@ author = Tiger
 version = 1.0.0.0
 buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, .git\*, .*, Properties\*
 modReferences = ImproveGame@1.6.5.2
-weakReferences = 
+weakReferences = WingSlotExtra
