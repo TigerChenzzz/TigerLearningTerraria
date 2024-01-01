@@ -25,11 +25,9 @@
     <ProjectReference Include="..\ImproveGame\ImproveGame.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <!--
     <Reference Include="ImproveGame">
       <HintPath>lib\ImproveGame.dll</HintPath>
     </Reference>
-    -->
     <Reference Include="InstantPlatformFallthrough">
       <HintPath>lib\InstantPlatformFallthrough.dll</HintPath>
     </Reference>
