@@ -14,8 +14,10 @@ using IL.Terraria.GameContent.UI;
 #endif
 using ImproveGame.Common.Configs;
 using ImproveGame.Content.Items;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using ReLogic.Content;
 using ReLogic.Graphics;
@@ -23,8 +25,11 @@ using ReLogic.OS;
 using System.Collections;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Terraria.Audio;
 using Terraria.Cinematics;
 using Terraria.DataStructures;
@@ -56,6 +61,7 @@ using Terraria.UI;
 using Terraria.UI.Chat;
 using Terraria.Utilities;
 using WingSlotExtra;
+using ILGenerator = System.Reflection.Emit.ILGenerator;
 
 namespace TigerLearning;
 
@@ -503,6 +509,81 @@ public class Learning {
             Show(player.manaMagnet);        //是否扩大魔力心的捡拾范围
             Show(player.treasureMagnet);    //是否扩大钱币的捡拾范围
             player.AddBuff(BuffID.Poisoned, 30);    //添加持续30帧的中毒debuff, 若在UpdateAccessory中直接写会一直存在
+        }
+        public class 信息饰品 {
+            public static string intro = """
+                如手机等可以在右侧地图下面展示一些信息的饰品, 也是可以自己造的
+                """;
+            public static InfoDisplay infoDisplay;
+            public static void ShowInfoDisplay() {
+                #region params
+                Player player = default;
+                int infoDisplayType = default;
+                #endregion
+                Show(infoDisplay.Type);     //信息展示内置ID
+                Show(player.hideInfo[infoDisplayType]); //此信息展示是否被隐藏(一般在背包中地图下有一排小图标调的就是这个)
+            }
+            #region 自制一个信息饰品的简单示例
+            public class ExampleInfoDisplayer : ModItem {
+                public override void SetDefaults() {
+                    Item.width = Item.height = 32;
+		            Item.rare = ItemRarityID.Green;
+		            Item.value = Item.sellPrice(0, 1, 0, 0);
+                    Item.accessory = true;  //似乎不是必要的(TBT)
+                }
+                public override void UpdateInfoAccessory(Player player) {
+                    player.GetModPlayer<ExampleInfoPlayer>().display = true;
+                }
+            }
+            public class ExampleInfoPlayer : ModPlayer {
+                public bool display;
+                public override void ResetInfoAccessories() {
+                    display = false;
+                }
+                public override void RefreshInfoAccessoriesFromTeamPlayers(Player otherPlayer) {
+                    var otherInfoPlayer = otherPlayer.GetModPlayer<ExampleInfoPlayer>();
+                    if(otherInfoPlayer.display) {
+                        display = true;
+                    }
+                }
+            }
+            public class ExampleInfoDisplay : InfoDisplay {
+                public static string tip = """
+                    需要在同目录下准备"<类名>.png"(比如此处就是"ExampleInfoDisplay.png")表示其小图标(14x14?)
+                    """;
+                public static string localization = $"""
+                    需要在本地化文件中设置Mods.[Mod类名].InfoDisplays.[此类名].DisplayName的值
+                    或者重写{nameof(DisplayName)}以设置获取显示名的获取
+                    """;
+                public override bool Active() => Main.LocalPlayer.GetModPlayer<ExampleInfoPlayer>().display;
+                /// <summary>
+                /// 在地图下方显示的值<br/>
+                /// 如果为空或者空字符串会有一些问题(会连带图标一起不显示), 尽量保证它长度不为0
+                /// </summary>
+                public override string DisplayValue(ref Color displayColor, ref Color displayShadowColor) => "Value";
+                /// <summary>
+                /// <br/>当鼠标放在小图标上时显示的字符串
+                /// <br/>默认是Mods.[Mod类名].InfoDisplays.[此类名].DisplayName
+                /// <br/>一般不需要重写, 除非想要在鼠标放上去时显示更多的信息,
+                /// <br/>此时可以用<see cref="LocalizedText.WithFormatArgs"/>来携带额外信息,
+                /// <br/>同时可以判断一下<see cref="Main.playerInventory"/>(当玩家打开背包时一般是管理信息饰品是否显示的)
+                /// <br/>实时更新
+                /// </summary>
+                public override LocalizedText DisplayName => base.DisplayName;
+                /// <summary>
+                /// <br/>小图标路径, 默认就在InfoDisplay对应路径
+                /// <br/>基本不需要重写
+                /// <br/>从Mod名开始的路径, 不加后缀(".png"), 例如: "ExampleMod/Content/Items/ExampleInfoDisplay"
+                /// </summary>
+                public override string Texture => base.Texture;
+                /// <summary>
+                /// <br/>当在背包中鼠标在小图标上时小图标上叠加显示的图片的路径
+                /// <br/>基本不需要重写
+                /// <br/>默认为"Terraria/Images/UI/InfoIcon_13"
+                /// </summary>
+                public override string HoverTexture => base.HoverTexture;
+            }
+            #endregion
         }
     }
     public class 添加套装 {
@@ -1344,7 +1425,7 @@ public class Learning {
                 #region 图鉴部分
                 //将该NPC划定为城镇NPC分类
                 NPCID.Sets.TownNPCBestiaryPriority.Add(Type);
-                NPCID.Sets.NPCBestiaryDrawModifiers drawModifiers = new(0) {
+                NPCID.Sets.NPCBestiaryDrawModifiers drawModifiers = new() {
                     //为NPC设置图鉴展示状态，赋予其Velocity即可展现出行走姿态
                     Velocity = 1f,
                 };
@@ -1663,7 +1744,7 @@ public class Learning {
             """;
         public static string 绘制流程 = """
             一定不要在没有SpriteBatch为参数的重写函数里写绘制函数!!!(初学者)
-            (其他地方可以通过Main.spriteBatch获取
+            (其他地方可以通过Main.spriteBatch获取)
             """;
         public static void 获得贴图() {
             #region params
@@ -1690,6 +1771,7 @@ public class Learning {
             #region params
             SpriteBatch spriteBatch = default;
             Texture2D texture = default;
+            string text = "text";
             Rectangle sourceRectangle = default, destinationRectangle = default;
             Vector2 position = default, origin = default;
             Color color = default, textColor = default, borderColor = default;
@@ -1720,12 +1802,12 @@ public class Learning {
             */
             spriteBatch.Draw(texture, position, sourceRectangle, color, rotation, origin, scale, SpriteEffects.None, 0);
             #endregion
-            #region 绘制文字
+            #region 绘制文字(绘制字符串)
             //文字绘制的函数建议使用 Terraria.Utils.DrawBorderStringFourWay(...) 而不是 spriteBatch.DrawString(...)
             /*
             font常用Main.fontMouseText(原版鼠标字体)
             */
-            Utils.DrawBorderStringFourWay(spriteBatch, font, "text", position.X, position.Y, textColor, borderColor, origin, scale);
+            Utils.DrawBorderStringFourWay(spriteBatch, font, text, position.X, position.Y, textColor, borderColor, origin, scale);
             /*
             font可以为DynamicSpriteFont或SpriteFont
                 DynamicSpriteFont可用FontAssets.ItemStack.Value等
@@ -1733,8 +1815,11 @@ public class Learning {
             scale可以为float或Vector2
             以上三条加上{可选的rotation等参数}凑出了12个重载
             */
-            spriteBatch.DrawString(font, "text", position, color);
-            spriteBatch.DrawString(font, "text", position, color, rotation, origin, scale, SpriteEffects.None, 0);
+            spriteBatch.DrawString(font, text, position, color);
+            spriteBatch.DrawString(font, text, position, color, rotation, origin, scale, SpriteEffects.None, 0);
+
+            //绘制带有图标的字符串
+            Show(typeof(Document.ChatManager_static_cls));
             #endregion
 
         }
@@ -2502,6 +2587,183 @@ public class Learning {
         }
     }
 
+    public class 泰拉瑞亚IL {
+        public static string sharpLab = """
+            https://sharplab.io/
+            这里可以简单的查看一段代码的IL代码或者汇编代码,
+            或者从IL代码反推源代码, 也可以直接运行一段代码
+            """;
+        public class 一个入门IL教程 {
+            public static string 参考 = "https://celestemod.saplonily.link/trans/il/";//是的, 这是蔚蓝的modder写的(
+            public static string 评估栈 = $$"""
+            在 IL 代码中, 大量操作符本质上都是在操作一个叫做"评估栈"的东西
+            比如如下 C# 方法: 
+                static int Add(int a, int b, int c) 
+                {
+                    return a + b + c;
+                }
+            它在编译器的 Release 优化下会编译成如下 IL:
+                .method private hidebysig static 
+                    int32 Add (
+                        int32 a,
+                        int32 b,
+                        int32 c
+                    ) cil managed 
+                {
+                    .maxstack 8
+
+                    IL_0000: ldarg.0 ({{nameof(OpCodes.Ldarg_0)}})
+                    IL_0001: ldarg.1 ({{nameof(OpCodes.Ldarg_1)}})
+                    IL_0002: add     ({{nameof(OpCodes.Add)}})
+                    IL_0003: ldarg.2 ({{nameof(OpCodes.Ldarg_2)}})
+                    IL_0004: add     ({{nameof(OpCodes.Add)}})
+                    IL_0005: ret     ({{nameof(OpCodes.Ret)}})
+                } // end of method Program::Add
+            这里我们把一部分声明部分放出来了, 不过我们只需要关心这一行: .maxstack 8
+                它表示请求在这个方法执行过程中评估栈有确保 8 个大小的空间可以使用
+            首先我们会介绍一个系列的操作符 ldarg.*, 它表示将方法参数列表中的第 (* + 1) 个参数压入评估栈中, 不带参数
+                注意这是在静态方法中而言的, 如果该方法是成员方法, 那么 ldarg.0 实际上压入的是 this 的值, 而 ldarg.1 才是第一个参数
+            在上述段 IL 中, 该方法是个静态方法, 所以前两行 ldarg.0 与 ldarg.1 会将第一个参数和第二个参数压入评估栈中
+            然后要介绍的是 add 操作符, add 操作符会弹出评估栈上的两个元素, 然后将它们相加, 然后将结果压入评估栈
+            最后是 ret 操作符, 当方法没有返回值时它会将控制权交回给调用者, 同时 jit 会为我们检查评估栈是否清空,
+                如果评估栈上还有东西那么同样 jit 会抛出异常({{nameof(InvalidProgramException)}}).
+                当方法拥有返回值时它会确保评估栈上有且只剩一个元素, 然后将这个值弹出并压入调用者的评估栈上(评估栈是方法独立的)
+            乘法的操作符为 mul, 其使用方法与 add 一致
+            减法的操作符为 sub, 它会弹出两个值, 将后弹出的值减去先弹出的值后将结果压入评估栈
+                (相减的顺序刚好就是压入的顺序, 也即弹出的逆顺序, 这点会让我们在某些情况下手写 IL 的更符合直觉一点)
+            """;
+            public static string 将不同类型的数据压栈 = $"""
+            ldc系列(load const, 压入常数)
+                ldc.r8({nameof(OpCodes.Ldc_R8)}) 将参数中的double(Float64)字面量压入评估栈中
+                ldc.r4({nameof(OpCodes.Ldc_R4)}) 则是float, ldc.i4({nameof(OpCodes.Ldc_I4)})指int(Int32)
+                il 中没有对应的加载 int16 和 int8 的指令, 我们得使用 ldc.i4
+                    虽然它本来是用来加载 int32 的, 但 jit 会知道我们想要干什么
+                对于小一点的整数字面量 IL 还提供了一个 ldc.i4.s({nameof(OpCodes.Ldc_I4_S)}) 指令, 其参数为 Int8 即 byte 或 sbyte 类型
+            """;
+            public static string 方法的调用 = $"""
+            在 IL 中有三种调用方法指令:
+                操作符                                 参数          描述
+                call({nameof(OpCodes.Call)})           方法token     根据方法的参数列表(包含 this, 如果其是成员方法时)逆顺序弹出对应数量参数并以此调用对应方法
+                callvirt({nameof(OpCodes.Callvirt)})   方法token     同 call, 但是该指令在对应方法为虚方法时会向下寻找重写后的方法
+                calli({nameof(OpCodes.Calli)})         callsite描述  根据 callsite 描述 弹出对应参数并再次弹出所需的函数指针并调用
+            其中用的最多的是 call 和 callvirt, 最后一个 calli 在做与本机交互时才常用, 因为它要求我们有对应的函数指针
+                (函数指针可能很多教程不会提及, 你可以在MSDN 上的不安全代码、数据指针和函数指针这篇文章中了解)
+            call 通常生成于静态方法的调用中, 而 callvirt 在运行时会检测目标类型, 并向下查找可能的被重写后的方法
+                一般对于普通成员方法的调用, C# 编译器也会生成 callvirt 指令, 这是因为 callvirt 需要检查目标类型,
+                在调用对象为 null 时就抛出 NullReferenceException, 而 call 指令可能直到方法调用一半时才察觉 this 为 null,
+                这是一个很危险的行为
+            call 和 callvirt 需要的参数为方法token, 一般为对应方法的MethodInfo
+            对于有返回值的方法, call / callvirt 调用完后会将返回值压入堆栈
+            当我们不需要返回值时, 我们必须显式使用 pop 指令舍弃它, 防止它"污染"我们的评估栈
+            方法的参数列表顺序和压栈顺序一致, 调用多参数方法也会显得很自然
+            """;
+            public static string 对象实例化 = $"""
+            使用 newobj({nameof(OpCodes.Newobj)}) 操作符以实例化一个对象
+                其参数为对应对象的一个构造器(MethodInfo)
+                该指令执行后会将我们要的对象压入评估栈
+            """;
+            public static string 成员方法的调用 = """
+            成员方法的调用与静态方法调用基本一致, 但是每次调用之前我们都必须记得将 this 的值作为第0个参数压入堆栈
+            顺便, 记住这里的 this 是作为参数传递的, 每次调用都会被弹出评估栈, 所以在连续调用它的成员方法时记得将 this 再次压入
+            通常我们会使用 callvirt 来调用成员方法, 一方面为了确保调用到了重写后的虚函数, 一方面为了尽可能早的检测出 this 为 null
+            """;
+            public static string 局部变量 = $"""
+            使用{nameof(ILGenerator.DeclareLocal)}以声明一种类型的局部变量, 声明的顺序即为它们的编号(从0开始)
+            使用 stloc.0({nameof(OpCodes.Stloc_0)}) 以将栈顶弹出并存到0号位的局部变量上
+            使用 ldloc.0({nameof(OpCodes.Ldloc_0)}) 以读取0号位的局部变量的值压入栈中(可重复压栈)
+            使用 dup({nameof(OpCodes.Dup)}) 以弹出栈顶的元素, 然后压入两遍这个元素
+            """;
+            public static string 属性的访问 = """
+            通常, 一个名为 MyProp 的属性的 getter 方法叫做 get_MyProp, setter 方法叫做 set_MyProp
+            顺便, 这一对方法它们各自都有一个 special name 的特殊标记以便编译器知晓它们归属于一个属性
+            """;
+            public static string 字段的访问 = $"""
+            对于静态字段的访问, 我们需要使用 ldsfld({nameof(OpCodes.Ldsfld)}) 操作符
+                它接受此静态字段的 token (FieldInfo) 作为参数, 将对应的静态字段的值压入评估栈
+            对于成员字段的访问则是用 ldfld({nameof(OpCodes.Ldfld)}), 它会额外弹出一个 this 元素
+            """;
+            public static string 跳转指令 = $"""
+            在 IL 中, 为了方便 大于, 小于, 大于等于, 小于等于, 是否 null, 是否非0 等众多条件表达式的判断, IL 引入了大量有关的指令:
+                指令                              描述
+                beq({nameof(OpCodes.Beq)})        如果两个值相等，则将控制转移到目标指令
+                beq.s({nameof(OpCodes.Beq_S)})    如果两个值相等，则将控制转移到目标指令(短格式, 后不累述)
+                bge({nameof(OpCodes.Bge)})        如果第一个值大于或等于第二个值，则将控制转移到目标指令
+                bge.un({nameof(OpCodes.Bge_Un)})  当比较无符号整数值或不可排序的浮点型值时，如果第一个值大于或等于第二个值，则将控制转移到目标指令(后不累述)
+                bgt({nameof(OpCodes.Bgt)})        如果第一个值大于第二个值，则将控制转移到目标指令
+                ble({nameof(OpCodes.Ble)})        如果第一个值小于或等于第二个值，则将控制转移到目标指令
+                blt({nameof(OpCodes.Blt)})        如果第一个值小于第二个值，则将控制转移到目标指令
+                bne.un({nameof(OpCodes.Bne_Un)})  当两个无符号整数值或不可排序的浮点型值不相等时，将控制转移到目标指令
+                br({nameof(OpCodes.Br)})          无条件地将控制转移到目标指令
+                brfalse({nameof(OpCodes.Brfalse)})如果 value 为 false、空引用零，则将控制转移到目标指令
+                brtrue({nameof(OpCodes.Brtrue)})  如果 value 不满足上条的条件，则将控制转移到目标指令
+            可通过{nameof(ILGenerator.DefineLabel)}定义标记, {nameof(ILGenerator.MarkLabel)}打上标记, 将此Label作为跳转的参数
+            """;
+            public static string 短格式版本指令 = """
+            (.s 系指令)
+            一些 IL 指令同时还有一个带 .s 后缀的版本, 这个我们一般叫它的 "短格式" 版本, 反之叫 "长格式" 版本
+            通常类似这一对 IL 指令的区别就是 .s 版本的参数会短一点, 比如长格式版本的参数长度是 4 字节, 而短格式版本的参数长度可能就是 2 字节
+            注意这里不是说的是压入评估栈的值的类型, 长短格式版本所做的事情是完全一样的, 只是传参允许你用短一点的参数
+            这其实就是一个对 IL 指令的大小优化, 编译器通常就会能用 .s 版本就用 .s 版本, 当参数需求超过短格式参数表达范围时才会使用长格式
+            对于我们的话如果你想微微的优化一下你的 IL 的大小的话, 你可以选择在参数范围够用的情况下使用 .s 版本
+            """;
+        }
+        public static void 挂IL钩子() {
+            string 参考 = "https://celestemod.saplonily.link/trans/adv_hooks/";
+            //首先找到要钩取的方法, 在Mod.Load重写或ModSystem.Load重写中写下此句
+            IL_Main.DrawInfoAccs += IL_Main_DrawInfoAccs;
+            //如果IL_Xxx中没有给出想要钩取的方法可参考下条
+            Show(typeof(泰拉瑞亚On.给任意方法上钩子));
+            //通过以上两种方法加载的钩子TML保证会卸载
+            static void IL_Main_DrawInfoAccs(ILContext il) {
+                //ILContext表示这个方法的 IL 上下文
+
+            }
+        }
+        public class 给任意方法上钩子而且不自动卸载的那种_可脱离TML使用 {
+            public delegate object MethodDelegate(object self, params object[] parameters);
+            public static object MethodHook(MethodDelegate orig, object self, params object[] parameters) {
+                //这里写On
+                return orig(self, parameters);
+            }
+            public static void Manipulate(ILContext il) {
+                //这里写IL
+            }
+            public static Hook hook;
+            public static ILHook ilHook;
+            public static void ShowHook() {
+                #region params
+                MethodBase method = default;
+                MethodInfo anotherMethod = default;
+                bool applyByDefault = default;
+                DetourConfig detourConfig = default;
+                object targetObject = default;
+                #endregion
+                #region On钩子
+                hook = new(method, MethodHook);     //挂On钩子
+                hook = new(method, MethodHook, true);     //在初始化后立即挂上去(其他的版本基本都有这个多的applyByDefault参数)
+                hook = new(method, MethodHook, detourConfig);   //配置挂钩子的顺序, 优先级等, 默认空
+                hook = new(method, MethodHook, detourConfig, applyByDefault);   //以上两种一起(基本每个版本都有这多的三种变体, 后不一一列举)
+                hook = new(method, anotherMethod);  //直接用anotherMethod替换method(TBT)
+                hook = new(method, anotherMethod, targetObject);    //修改特定对象的方法(必须直接替换, 不能用MethodHook)(同样有上面的三种变体)
+                Show(hook.Config);      //获得配置, 若无则是空
+                hook.Apply();           //挂上此钩子
+                hook.Undo();            //卸载此钩子
+                Show(hook.IsApplied);   //是否挂上了钩子
+                #endregion
+                #region IL钩子
+                ilHook = new(method, Manipulate);
+                ilHook = new(method, Manipulate, applyByDefault);   //是否立即挂上去(默认false)
+                ilHook = new(method, Manipulate, detourConfig);     //配置挂钩子的顺序, 优先级等, 默认空
+                ilHook = new(method, Manipulate, detourConfig, applyByDefault);//以上两种一起
+                Show(ilHook.Config);    //获得配置, 若无则是空
+                ilHook.Apply();         //挂上此钩子
+                ilHook.Undo();          //卸载此钩子
+                Show(ilHook.IsApplied); //是否挂上了钩子
+                #endregion
+            }
+        }
+    }
+
     public class 多人同步 {
         public static void 同步物品() {
             #region params
@@ -2593,7 +2855,19 @@ public class Learning {
                 #endregion
                 Show(player.whoAmI);            //玩家在Main.player数组中的下标
                 Show(player.inventory);         //库存数组, 包括第一排, 钱币和弹药, 但不包括垃圾桶
-                Show(player.HeldItem);          //手上的物品(不是鼠标上的, 而是在第一排中选中的)
+                string specialInventorySlot = """
+                    player.inventory[58]代指鼠标上拿起的物品, 由Main.mouseItem克隆而来。
+                        实际上克隆发生在Player.dropItemCheck中, 而这个在失去焦点或者在不能使用物品时不会执行(参见Player.Update)
+                    如果要对鼠标上的东西作出修改, 不能修改这里, 而需要修改Main.mouseItem。
+                    另外当鼠标上有物品时, player.HeldItem也是player.inventory[58], 所以
+                    此时对player.HeldItem作出修改也是没用的(但其他时候就可以对它作出修改)。
+                    """;
+                Show(player.HeldItem);
+                string playerHeldItemIntro = """
+                    player.HeldItem为玩家手上的物品
+                    (在第一排中选中的, 如果鼠标上有物品, 则是鼠标上的)
+                    实际上是player.inventory[player.selectedItem]的简称
+                    """;
                 Show(player.numberOfDeathsPVE); //PVE死亡数
                 Show(player.numberOfDeathsPVP); //PVP死亡数
                 #region 是否拥有物品
@@ -2900,6 +3174,9 @@ public class Learning {
                 Show(Main.mouseItem);               //鼠标上拿着的物品
                 Show(Main.CurrentFrameFlags.SleepingPlayersCount);  //正在睡觉的玩家数量
                 Show(Main.CurrentFrameFlags.ActivePlayersCount);    //玩家数量
+                #endregion
+                #region UI
+                Show(Main.playerInventory);         //是否在打开背包的状态
                 #endregion
                 Show(Main.npc);                     //npc数组
                 Show(Main.projectile);              //弹幕数组
@@ -4493,6 +4770,60 @@ public class Learning {
             }
         }
         #endregion
+        #region namespace Terraria.UI
+        #region namespace Terraria.UI.Chat
+        public class ChatManager_static_cls {
+            public static string intro = """
+                可以用来绘制带有小图标(snippet)的字符串
+                绘制Tooltip用的就是用的这个
+                """;
+            public static void ShowChatManager() {
+                #region params
+                SpriteBatch spriteBatch = default;
+                DynamicSpriteFont font = default;
+                Vector2 position = default, origin = default, scaleV2 = Vector2.One;
+                string text = "text";
+                Color color = default, shadowColor = default;
+                float rotation = default, maxWidth = -1, spread = 2;
+                bool ignoreColors = false;
+                #endregion
+                var snippets = ChatManager.ParseMessage(text, color).ToArray();
+                string DrawColorCodedStringWithShadowIntro = $"""
+                    这五个都相当于调用带有snippets参数的{nameof(ChatManager.DrawColorCodedStringShadow)}和{nameof(ChatManager.DrawColorCodedString)}
+                    maxWidth默认-1, spread默认2, 这5个都有这俩默认参数
+                    maxWidth: 最大宽度, -1代表不限
+                    spread: 阴影的扩散程度
+                    带有text参数的相当于是使用{nameof(ChatManager.ParseMessage)}后再调用带有snippets参数的版本
+                    color表示字符串的颜色, 若没有则是{Color.White}, shadowColor表示阴影的颜色, 若没有则是{Color.Black}
+                    """;
+                ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text    , position, color, rotation,              origin, scaleV2, maxWidth, spread);
+                ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, snippets, position,        rotation,              origin, scaleV2, out int hoveredSnippet);
+                ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text    , position, color, shadowColor, rotation, origin, scaleV2);
+                ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, snippets, position, rotation, color,              origin, scaleV2, out hoveredSnippet);
+                ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, snippets, position, rotation, color, shadowColor, origin, scaleV2, out hoveredSnippet);
+
+                string DrawColorCodedStringIntro = $"""
+                    maxWidth默认-1, ignoreColors默认false(带有snippets参数的那个maxWidth没有默认值, 需显式指定)
+                    带有text参数的不会调用{nameof(ChatManager.ParseMessage)}, 而是直接将字符串显示出来
+                    ignoreColors表示是否忽略由字符串指定的颜色(似乎是使用":sss1", ":sss2", ":sssr"指定红蓝白, TBT)
+                    """;
+                ChatManager.DrawColorCodedString(spriteBatch, font, text    , position, color, rotation, origin, scaleV2,                     maxWidth, ignoreColors);
+                ChatManager.DrawColorCodedString(spriteBatch, font, snippets, position, color, rotation, origin, scaleV2, out hoveredSnippet, maxWidth, ignoreColors);
+
+                string DrawColorCodedStringShadowIntro = $"""
+                    maxWidth默认-1, spread默认2
+                    带有text参数的不会调用{nameof(ChatManager.ParseMessage)}, 而是直接将字符串显示出来
+                    """;
+                ChatManager.DrawColorCodedStringShadow(spriteBatch, font, text, position, color, rotation, origin, scaleV2, maxWidth, spread);
+                ChatManager.DrawColorCodedStringShadow(spriteBatch, font, snippets, position, color, rotation, origin, scaleV2, maxWidth, spread);
+
+                //获取画Snippets所需的大小(若传入text则是Parse后再算), maxWidth默认-1
+                ChatManager.GetStringSize(font, text, scaleV2, maxWidth);
+                ChatManager.GetStringSize(font, snippets, scaleV2, maxWidth);
+            }
+        }
+        #endregion
+        #endregion
         #region namespace Terraria.Utility
         public class WeightedRandom_cls {
             public static void ShowWeightedRandom() {
@@ -4508,14 +4839,253 @@ public class Learning {
         #endregion
         #region IL
         #region namespace MonoMod.Cil
+        public class ILContext_cls {
+            public static ILContext ilContext;
+            public static string intro = """
+                表示一个方法的 IL 上下文
+                """;
+            public static void ShowILContext() {
+                #region params
+                MethodBase method = default;
+                Instruction instruction = default;
+                #endregion
+                _ = new ILCursor(ilContext);    //创建一个从此方法头部开始的ILCursor
+                Show(ilContext.Instrs);         //此方法中的所有语句
+                Show(ilContext.Labels);         //此方法中的所有标签
+                ilContext.GetIncomingLabels(instruction);   //获得此语句前的标签(实际上是搜索ilContext.Labels以获得所有Target是此语句的标签)
+                ilContext.ToString();   //获得此方法的方法名以及主体IL代码
+            }
+        }
         public class ILCursor_cls {
             public static ILCursor ilCursor;
+            public static string intro = """
+                指示il的位置, 可以理解为处于两个语句之间
+                """;
+            public static string 关于指针语句和标签的位置关系 = $"""
+                指针: {nameof(ILCursor)}, 语句: {nameof(Instruction)}, 标签: {nameof(ILLabel)}
+                指针的位置处于语句的缝隙中, 包括第一条语句前和最后一条语句后
+                    指针的上一句和下一句是挨在一起的
+                标签指向一个语句, 可以看作在语句之前的位置, 一个语句可能会有多个标签指向它
+                语句本身不保存关于指向自己的标签的数据, 若需要则要从ILContext.Labels中搜索获得
+                指针内部存有 ILLabel[]类型的 _afterLabels 数据标明自己在下一条语句的哪些标签后
+                    即指针默认是在下一条语句的所有标签之前的
+                当指针插入一条语句时, 会将 _afterLabels 中的标签导向到新插入的语句上,
+                    以表现出指针和标签之间的位置关系
+                """;
             public static void ShowILCursor() {
                 #region params
-                ILContext ilContext = null;
+                ILContext ilContext = default;
+                Instruction instruction = default;
+                ParameterReference parameterReference = default;
+                VariableReference variableReference = default;
+                MethodInfo methodInfo = default;
+                MethodReference methodReference = default;
+                FieldInfo fieldInfo = default;
+                FieldReference fieldReference = default;
+                ILLabel label = default;
+                int index = default;
+                Main any = default;
                 #endregion
-                ilCursor = new(ilContext);
+                #region 创建一个ILCursor
+                ilCursor = new(ilContext);  //从ilContext的头部开始
+                ilCursor = new(ilCursor);   //从另一个ilCursor处开始
+                #endregion
+                Show(ilCursor.Context);     //对应的ILContext
+                Show(ilCursor.Instrs);      //此方法中的所有语句, 即Context.Instrs
+                Show(ilCursor.IncomingLabels);  //获得下一条语句前的所有标签, 不论在指针前后, 即Context.GetIncomingLabels(Next)
+                #region 定位
+                Show(ilCursor.Previous);    //上一句, 如果在头部则为空, 可设置以进行跳转
+                Show(ilCursor.Prev);        //同Previous
+                Show(ilCursor.Next);        //下一句, 如果在尾部则为空, 可设置以进行跳转
+                Show(ilCursor.Index);       //Next在Context中的位置
+                //实际上ilCursor内部存有的是_next; Prev, Index都是由它计算而来
 
+                ilCursor.Goto(instruction); //跳转到此句之前, 可以为空表示跳到尾部
+                ilCursor.Goto(instruction, MoveType.Before);    //同上
+                ilCursor.Goto(instruction, MoveType.After);   //跳转到此句之后或者是此句前的标签之后
+                ilCursor.Goto(instruction, MoveType.AfterLabel);   //跳转到此句前的标签之后(相当于带有ilCursor.MoveAfterLabels()的MoveType.Before)
+                //setTarget (默认 false )代表在下次搜索时是否跳过搜索此条语句, 为默认值 false 时会将 SearchTarget 设置为 None
+                //当 moveType 为 Before (包括 AfterLabel )时会忽略下一条语句, 即把 SearchTarget 设置为 Next , 为 After 时则相反
+                //当使用 (Try)GotoNext/(Try)GotoPrev 时就会跳过此句(具体为当 SearchTarget 为 Next 时 GotoNext 会跳过一句, 反之亦然)
+                //而使用 Goto, (Try)GotoNext, (Try)GotoPrev 本身也会改变 SearchTarget, 后两者会调用 setTarget 参数为 true 的 Goto
+                ilCursor.Goto(instruction, MoveType.Before, setTarget:true);
+                ilCursor.Goto(index);   //可以使用数字表示语句的序号代替语句, 可以为负数表示倒数第几句
+                //当搜索时搜索带的语句是在之前或者之后, 当下次搜索时会跳过此句, 可以看作是一个选中状态
+                //当使用setTarget为false的Goto或者使用Prev, Next, Index等方式挪动指针时都会重置它
+                //另外这也代表这只能只是一条语句, 即使搜索的是多条语句, 下次往相应方向搜索时也只会跳过壹句
+                //还有一个特性, 当指针在末尾时它不会是Next, 在开头时不会是Prev
+                Show(ilCursor.SearchTarget);
+                Show(SearchTarget.None);
+                Show(SearchTarget.Next);
+                Show(SearchTarget.Prev);
+                ilCursor.MoveAfterLabels(); //跳转到下一句前的所有标签之后
+                ilCursor.MoveBeforeLabels(); //跳转到下一句前的所有标签之前
+                ilCursor.GotoLabel(label);      //移动指针到此标签后, 相当于用AfterLabel跳到此标签指示的语句
+                #endregion
+                #region 查找
+                ilCursor.TryGotoNext(); //为空时且SearchTarget为Next时跳过一条语句(此时若在尾部则不动并返回false), 建议不要使用
+                                        //如果想跳过一条语句, 建议使用 ilCursor.Next = ilCursor.Next?.Next; 或 ilCursor.Index++;(注意超界)
+                ilCursor.TryGotoNext(i => i.MatchAdd()); //跳到下一条操作符是加的语句的前面, 若没找到则返回false且不动
+                ilCursor.TryGotoNext(MoveType.Before, ILPatternMatchingExt.MatchAdd); //同上
+                ilCursor.TryGotoNext(MoveType.After, ILPatternMatchingExt.MatchAdd); //跳到下一条操作符是加的语句的后面, 若没找到则返回false且不动
+                ilCursor.TryGotoNext(MoveType.After, ILPatternMatchingExt.MatchAdd); //跳到下一条操作符是加的语句前的标签后面, 若没找到则返回false且不动
+                //向下寻找两条语句, 其中第一条是 add, 第二条是 sub, 然后跳到第一条之前, 若使用MoveType.After则是第二条之后
+                ilCursor.TryGotoNext(ILPatternMatchingExt.MatchAdd, ILPatternMatchingExt.MatchSub); //跳到下一条操作符是加的语句的前面, 若没找到则返回false且不懂
+
+                ilCursor.GotoNext(i => i.MatchLdcI4(10));    //基本同TryGotoNext, 只是TryGotoNext返回false时会报错; 返回自身(this)
+                ilCursor.TryGotoPrev(); //除了为向上搜索外都与TryGotoNext一致
+                ilCursor.GotoPrev();    //当TryGotoPrev返回false时报错, 否则返回自身
+
+                //基本同TryGotoNext, 但不会动自身, 而是将predicates对应的ILCursor封装成cursors
+                //cursors的长度与后续参数(predicates)的个数一致
+                ilCursor.TryFindNext(out ILCursor[] cursors, i => i.OpCode == OpCodes.Add, i => i.OpCode == OpCodes.Add);
+                ilCursor.TryFindPrev(out cursors, i => i.OpCode == OpCodes.Add);
+                ilCursor.FindNext(out cursors, i => i.OpCode == OpCodes.Add);
+                ilCursor.FindPrev(out cursors, i => i.OpCode == OpCodes.Add);
+                #endregion
+                #region 打标签
+                label = ilCursor.DefineLabel(); //定义一个标签
+                ilCursor.MarkLabel(label);      //标记上此标签, 并跳到此标签后
+                label = ilCursor.MarkLabel();   //用此句可以干上面两行的事
+                label.Target = ilCursor.Next;   //标记上此标签, 并留在此标签前
+                label = ilCursor.MarkLabel(instruction);    //在此句上打上标签, 若指针也在此句前, 则将指针挪到标签后
+                #endregion
+                #region 插入语句
+                //插入一条语句后默认都会挪到插入的语句之后
+                ilCursor.Emit(OpCodes.Ldarg_1);     //插入一个操作符, 如果有参数则在继续后面传入参数
+                #region 基本指令
+                OpCodes_static_cls.ShowOpCodes();   //解释详见此处
+                #region 简单运算
+                ilCursor.EmitAdd();
+                ilCursor.EmitSub();
+                ilCursor.EmitMul();
+                ilCursor.EmitDiv();
+                ilCursor.EmitRem();
+                ilCursor.EmitNeg();
+                ilCursor.EmitCeq();
+                ilCursor.EmitCgt();
+                ilCursor.EmitClt();
+                ilCursor.EmitAnd();
+                ilCursor.EmitOr();
+                ilCursor.EmitNot();
+                ilCursor.EmitXor();
+                #endregion
+                #region 压入数据
+                #region 将常数压栈
+                ilCursor.EmitLdcI8(1L);
+                ilCursor.EmitLdcI4(1);
+                ilCursor.EmitLdcR8(1.0);
+                ilCursor.EmitLdcR4(1.0F);
+                ilCursor.Emit(OpCodes.Ldc_I4_0);
+                ilCursor.Emit(OpCodes.Ldc_I4_8);
+                ilCursor.EmitLdstr("Hello World!");
+                #endregion
+                ilCursor.EmitDup();
+                #endregion
+                #region 调用参数
+                #region 压入参数
+                ilCursor.EmitLdarg0();
+                ilCursor.EmitLdarg1();
+                ilCursor.EmitLdarg(10);
+                ilCursor.EmitLdarg(parameterReference);  //TBT
+                #endregion
+                #region 设置参数
+                ilCursor.EmitStarg(3);
+                #endregion
+                #endregion
+                #region 局部变量
+                #region 压入局部变量
+                ilCursor.EmitLdloc0();
+                ilCursor.EmitLdloc1();
+                ilCursor.EmitLdloc(10);
+                ilCursor.EmitLdloc(variableReference);  //TBT
+                #endregion
+                #region 设置局部变量
+                ilCursor.EmitStloc0();
+                ilCursor.EmitStloc(22);
+                ilCursor.EmitStloc(variableReference);  //TBT
+                #endregion
+                #endregion
+                #region 调用方法或属性
+                ilCursor.EmitCall(methodInfo);
+                ilCursor.EmitCallvirt(methodInfo);
+                ilCursor.EmitCall(methodReference);
+                ilCursor.EmitCallvirt(methodReference);
+                #endregion
+                #region 调用字段
+                 ilCursor.EmitLdsfld(fieldInfo);
+                 ilCursor.EmitStsfld(fieldInfo);
+                 ilCursor.EmitLdfld(fieldInfo);
+                 ilCursor.EmitStfld(fieldInfo);
+                 ilCursor.EmitLdsfld(fieldReference);   //TBT
+                 ilCursor.EmitStsfld(fieldReference);   //TBT
+                 ilCursor.EmitLdfld(fieldReference);    //TBT
+                 ilCursor.EmitStfld(fieldReference);    //TBT
+                #endregion
+                #region 跳转指令
+                ilCursor.EmitBr     (instruction); //用instruction时会自动新建一个Label
+                ilCursor.EmitBr     (label);    //后面的都有instruction或label, 就只写短的一种了
+                ilCursor.EmitBeq    (label);
+                ilCursor.EmitBge    (label);
+                ilCursor.EmitBgt    (label);
+                ilCursor.EmitBle    (label);
+                ilCursor.EmitBlt    (label);
+                ilCursor.EmitBgeUn  (label);
+                ilCursor.EmitBgtUn  (label);
+                ilCursor.EmitBleUn  (label);
+                ilCursor.EmitBltUn  (label);
+                ilCursor.EmitBneUn  (label);
+                ilCursor.EmitBrtrue (label);
+                ilCursor.EmitBrfalse(label);
+                ilCursor.EmitBle(instruction);
+                #endregion
+                #region .s系指令
+                //好像并没有直接给出ilCursor.EmitXxxS的指令
+                #endregion
+                #region 其他指令
+                ilCursor.EmitBreak();
+                #endregion
+                #endregion
+                #region 插入引用
+                int id = ilCursor.AddReference(any);    //同Context.AddReference(), 将任意对象引入并获得其id
+                ilCursor.EmitGetReference<Main>(id);    //在指针处插入语句: 取得id和type对应的对象入栈
+                ilCursor.EmitReference(any);    //干上面两句的事, 并返回id以供下次使用
+
+                ilCursor.EmitDelegate((int i) => ++i);    //在指针处插入一个方法的调用, 相当于插入一个 call 语句(不是 callvirt)
+                #endregion
+                #endregion
+                #region 去除语句
+                ilCursor.Remove();  //去除下一条语句, 需要自己判超界
+                ilCursor.RemoveRange(5);    //去除下面 5 条语句
+                #endregion
+                #region 杂项
+                Show(ilCursor.IsBefore(instruction));   //是否在此语句之前(不必紧靠)
+                Show(ilCursor.IsAfter(instruction));    //是否在此语句之后(不必紧靠)
+                #endregion
+            }
+        }
+        public class ILLabel_cls {
+            public static ILLabel label;
+            public static string intro = """
+                表示一个标签, 如goto语句就是显示使用的标签
+                if-else, while, for, switch等条件控制语句也都会使用标签控制
+                """;
+            public static void ShowLabel() {
+                #region params
+                ILContext ilContext = default;
+                ILCursor ilCursor = default;
+                Instruction instruction = default;
+                #endregion
+                #region 创建一个标签
+                label = ilContext.DefineLabel();    //定义一个标签, 需要设置其Target
+                label = ilContext.DefineLabel(instruction); //把标签打在这里
+                #endregion
+                Show(label.Branches);   //所有操作数是此标签的语句(即所有指向这里的语句)(通过搜索Context.Instrs获得)
+                Show(label.Target);     //label指向的语句
+
+                #region 打上标签
+                ilCursor.MarkLabel(label);  //将标签打在指针前
+                #endregion
             }
         }
         #endregion
@@ -4525,14 +5095,171 @@ public class Learning {
                 在IL中压栈通常以ld开头, 出栈则以st开头
                 """;
             public static void ShowOpCodes() {
-                Show(OpCodes.Add);              //将计算堆栈上的两个值相加并将结果推送到计算堆栈上
+                #region params
+                ILCursor il = default;
+                MethodInfo methodInfo = default, constructor = default;
+                MethodReference methodReference = default;
+                FieldInfo fieldInfo = default;
+                Instruction insctruction = default;
+                ILLabel label = default;
+                ParameterReference parameterReference = default;
+                VariableReference variableReference = default;
+                #endregion
+                #region 简单运算
+                il.Emit(OpCodes.Add);           //将栈上的两个值相加并将结果压栈
+                il.Emit(OpCodes.Sub);           //从栈弹出两个值, 将后弹出的值(先压入的值, 也称第一个值)减去先弹出的值后将结果压栈
+                il.Emit(OpCodes.Mul);           //相乘
+                il.Emit(OpCodes.Div);           //相除, 结果为浮点或整型(TBT)
+                il.Emit(OpCodes.Rem);           //取余
+                il.Emit(OpCodes.Neg);           //取反
+                il.Emit(OpCodes.Ceq);           //从栈弹出两个值, 若相等则将1(true)压栈, 否则将0(false)压栈
+                il.Emit(OpCodes.Cgt);           //大于
+                il.Emit(OpCodes.Clt);           //小于
+                il.Emit(OpCodes.And);           //与
+                il.Emit(OpCodes.Or );           //或
+                il.Emit(OpCodes.Not);           //非
+                il.Emit(OpCodes.Xor);           //异或
+                //cge 和 cle 是没有的
+                #endregion
+                #region 压入数据
+                #region 将常数压栈
+                il.Emit(OpCodes.Ldc_I8, 5_000_000_000L);//压入一个8字节整数(long)
+                il.Emit(OpCodes.Ldc_I4, 100);           //压入int (根据传入参数也可以是压入short或byte)
+                il.Emit(OpCodes.Ldc_R8, 2.2);           //压入double
+                il.Emit(OpCodes.Ldc_R4, 1.1f);          //压入float
+                il.Emit(OpCodes.Ldc_I4_0);              //压入int值0
+                il.Emit(OpCodes.Ldc_I4_8);              //压入int值8
+                il.Emit(OpCodes.Ldstr, "Hello World!"); //压入字符串
+                #endregion
+                il.Emit(OpCodes.Dup);   //弹出栈顶的元素, 然后将其压入两遍
+                #endregion
+                #region 调用参数
+                #region 压入参数
+                il.Emit(OpCodes.Ldarg_0);       //压入第一个参数(如果不是静态方法第一个参数实际上是this, 从第二个开始才是方法上标明的参数)
+                il.Emit(OpCodes.Ldarg_1);       //压入第二个参数
+                il.Emit(OpCodes.Ldarg_S, 10);   //压入第十一个参数(非静态方法且不算this的话就是第十个)
+                il.Emit(OpCodes.Ldarg, parameterReference);  //TBT
+                #endregion
+                #region 设置参数
+                //这里就没有starg.0, starg.1之类的, 有点奇怪
+                il.Emit(OpCodes.Starg, 3);      //弹出一个值存入第四个参数中
+                #endregion
+                #endregion
+                #region 局部变量
+                #region 压入局部变量
+                il.Emit(OpCodes.Ldloc_0);       //压入调用堆栈索引为0处的值(编号为0的局部变量)
+                il.Emit(OpCodes.Ldloc_1);
+                il.Emit(OpCodes.Ldloc_S, 10);
+                il.Emit(OpCodes.Ldloc, variableReference);  //TBT
+                #endregion
+                #region 设置局部变量
+                il.Emit(OpCodes.Stloc_0);   //弹出一个值并存入编号为0的局部变量
+                il.Emit(OpCodes.Stloc, 22); //弹出一个值并存入编号为22的局部变量
+                il.Emit(OpCodes.Stloc, variableReference);  //TBT
+                #endregion
+                #endregion
+                #region 调用方法
+                                                        //call或callvirt会根据方法的参数列表(包含 this, 如果其是成员方法时)逆顺序弹出对应数量参数并以此调用对应方法
+                                                        //对于有返回值的方法, call / callvirt 调用完后会将返回值压栈
+                il.Emit(OpCodes.Call, methodInfo);      //call 指令一旦指定了对应方法, 那么在运行时调用的方法是不会变的, 所以它通常生成于静态方法的调用中
+                il.Emit(OpCodes.Callvirt, methodInfo);  //callvirt 在运行时会检测目标类型, 并向下查找可能的被重写后的方法, 所以按字面意思它经常生成于虚方法的调用中
+                                                        //额外的, callvirt 需要检查目标类型, 在调用对象为 null 时就抛出 NullReferenceException, 而 call 指令可能直到方法调用一半时才察觉 this 为 null, 这是一个很危险的行为
+                                                        //所以对于普通成员方法的调用, C# 编译器一般也会生成 callvirt 指令
+                il.Emit(OpCodes.Call, methodReference);         //TBT
+                il.Emit(OpCodes.Callvirt, methodReference);     //TBT
+                il.Emit(OpCodes.Newobj, constructor);   //constructor是构造器的MethodInfo, 通过这个构造器实例化一个对象并压入栈中
+                #endregion
+                #region 调用属性
+                //相当于调用方法, 通常, 一个名为 MyProp 的属性的 getter 方法叫做 get_MyProp, setter 方法叫做 set_MyProp
+                //顺便, 这一对方法它们各自都有一个 special name 的特殊标记以便编译器知晓它们归属于一个属性
+                #endregion
+                #region 调用字段
+                il.Emit(OpCodes.Ldsfld, fieldInfo); //获取静态字段的值压栈
+                il.Emit(OpCodes.Stsfld, fieldInfo); //从栈中取出一个值并存入静态字段中
+                il.Emit(OpCodes.Ldfld, fieldInfo);  //从栈中取出一个值作为 this, 然后获取其字段的值压栈
+                il.Emit(OpCodes.Stfld, fieldInfo);  //从栈中取出两个值, 将先取出的(第二个压入的)存入第一个作为this的字段中
+                #endregion
+                #region 跳转指令
+                il.Emit(OpCodes.Br, insctruction);  //无条件跳转, instruction可以写 ilCursor.Next/Prev/Previous 等
+                il.Emit(OpCodes.Br, label);         //无条件跳转, label可以由 ilCursur.MarkLabel 等方式得到
+                il.Emit(OpCodes.Beq, label);        //(从栈中弹出两个数)相等时跳转
+                il.Emit(OpCodes.Bge, label);        //大于等于时跳转(后弹出的(先压入的)与另一个比较)
+                il.Emit(OpCodes.Bgt, label);        //大于时跳转
+                il.Emit(OpCodes.Ble, label);        //小于等于时跳转
+                il.Emit(OpCodes.Blt, label);        //小于时跳转
+                il.Emit(OpCodes.Bge_Un, label);     //当比较无符号整数值或不可排序的浮点型值时, 大于等于时跳转
+                il.Emit(OpCodes.Bgt_Un, label);     //当比较无符号整数值或不可排序的浮点型值时, 大于时跳转
+                il.Emit(OpCodes.Ble_Un, label);     //当比较无符号整数值或不可排序的浮点型值时, 小于等于时跳转
+                il.Emit(OpCodes.Blt_Un, label);     //当比较无符号整数值或不可排序的浮点型值时, 小于时跳转
+                il.Emit(OpCodes.Bne_Un, label);     //当比较无符号整数值或不可排序的浮点型值时, 不等于时跳转
+                il.Emit(OpCodes.Brfalse, label);    //为假时跳转(包括空或0)
+                il.Emit(OpCodes.Brtrue, label);     //为真时跳转(包括非空非0值)
+                #endregion
+                #region .s系指令
+                Show(泰拉瑞亚IL.一个入门IL教程.短格式版本指令);
+                //这里不全部收录
+                il.Emit(OpCodes.Ldc_I4_S, 20);
+                il.Emit(OpCodes.Ldarg_S, 10);
+                il.Emit(OpCodes.Ldloc_S, 10);
+                il.Emit(OpCodes.Stloc_S, 10);
+                il.Emit(OpCodes.Br_S);
+                #endregion
+                #region 其他指令
+                il.Emit(OpCodes.Break);    //引发断点
+                #endregion
+                Show(OpCodes.Ret);              //返回, 无参, 会检查栈, 若无返回值则栈需为空, 若有栈中应只有需要返回的值
                 Show(OpCodes.Nop);              //空语句
-                Show(OpCodes.Ldstr);            //入栈字符串
-                Show(OpCodes.Call);             //调用函数
-                Show(OpCodes.Ret);              //返回
-                Show(OpCodes.Ldloc_0);          //入栈调用堆栈索引为0处的值
-                Show(OpCodes.Ldc_I4_0);         //入栈序号为0的int32数值
-                Show(OpCodes.Ldarg_0);          //入栈第一个成员参数
+            }
+        }
+        public class Instruction_cls {
+            public static Instruction instruction;
+            public static string intro = """
+                代表一条语句
+                """;
+            public static void ShowInstruction() {
+                Show(instruction.Next);     //下一条语句
+                Show(instruction.Previous); //上一条语句
+                Show(instruction.OpCode);   //操作代码
+                Show(instruction.Operand);  //操作数(参数), 若没有则是null
+                Show(instruction.Offset);   //地址偏移, 一般不需要使用
+                #region 创建一条语句
+                Instruction.Create(OpCodes.Add);    //如操作符有参数则需额外传入此参数
+                #endregion
+            }
+        }
+        #endregion
+        #endregion
+        #region namespace System
+        #region namespace System;
+        public class Console_static_cls {
+            public static string intro = "用于控制台输入输出";
+            public void ShowConsole() {
+                Console.WriteLine("Hello World!");
+                Console.WriteLine("count {0}, and count {1}", 1, 0.0M);
+            }
+        }
+        #endregion
+        #region namespace System.Treading;
+        public class Thread_cls {
+            public static Thread thread;
+            public static string intro = "线程";
+            public static void ShowThread() {
+                Show(Thread.CurrentThread); //获得当前线程
+                Show(thread.Name);          //线程的名字
+                Show(thread.IsAlive);       //线程的当前状态(TBT)
+                Show(thread.IsBackground);  //是否是后台线程(?)
+                Show(thread.Priority);      //线程的调度优先级
+                thread = new Thread(ThreadMethod);    //定义一个线程
+                thread.Start();             //开始此线程
+                Thread.Sleep(100);          //让此线程暂停100ms
+                Thread.SpinWait(100);       //让致线程等待由 iterations 参数定义的时间量(TBT)
+                Thread.Yield();             //转到另外的线程
+            }
+            public static void ThreadMethod() {
+                for (int i = 0; i < 10; ++i) {
+                    Console.WriteLine(i);
+                    Thread.Yield();
+                }
             }
         }
         #endregion
@@ -4671,6 +5398,98 @@ public class Learning {
             [CallerFilePath]string callerFile = null) {
             Console.WriteLine($"{expression} = {value}");
         }
+    }
+    public class 非托管类型 {
+        public static string intro = """
+            如果某个类型是以下类型之一，则它是非托管类型 ：
+
+                sbyte、byte、short、ushort、int、uint、long、ulong、nint、nuint、char、float、double、decimal 或 bool
+                任何枚举类型
+                任何指针类型
+                任何仅包含非托管类型字段的用户定义的结构类型。
+            如果某个类型是以下类型之一，则它是非托管类型 ：
+
+                sbyte、byte、short、ushort、int、uint、long、ulong、nint、nuint、char、float、double、decimal 或 bool
+                任何枚举类型
+                任何指针类型
+                任何仅包含非托管类型字段的用户定义的结构类型。
+            引自https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/builtin-types/unmanaged-types
+            """;
+        public static string unmanaged约束 = """
+            可使用 unmanaged 约束指定：类型参数为“非指针、不可为 null 的非托管类型”
+            引自https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/builtin-types/unmanaged-types
+            """;
+    }
+    public class when关键字 {
+        /// <summary>
+        /// 关于when在try-catch中的应用(.net6.0)
+        /// </summary>
+        static async Task<string> MakeRequest() {
+            var client = new HttpClient();
+            var streamTask = client.GetStringAsync("https://localHost:10000");
+            try {
+                var responseText = await streamTask;
+                return responseText;
+            }
+            catch(HttpRequestException e) when(e.Message.Contains("404")){
+                return "Page Not Found";
+            }
+            catch(HttpRequestException e) when(e.Message.Contains("301")) {
+                return "Site Moved";
+            }
+            catch(HttpRequestException e) {
+                return e.Message;
+            }
+        }
+
+        /// <summary>
+        /// when在switch-case中的应用(.net7.0?)
+        /// </summary>
+        static void DisplayMeasurements(int a, int b) {
+            switch((a, b)) {
+            case ( > 0, > 0) when a == b:
+                Console.WriteLine($"Both measurements are valid and equal to {a}.");
+                break;
+            case ( > 0, > 0):
+                Console.WriteLine($"First measurement is {a}, second measurement is {b}.");
+                break;
+            default:
+                Console.WriteLine("One or both measurements are not valid.");
+                break;
+            }
+        }
+
+        /// <summary>
+        /// when在switch表达式中的应用
+        /// </summary>
+        static Point Transform(Point point) => point switch {
+            { X: 0, Y: 0 } => new Point(0, 0),
+            { X: var x, Y: var y } when x < y => new Point(x + y, y),
+            { X: var x, Y: var y } when x > y => new Point(x - y, y),
+            { X: var x, Y: var y } => new Point(2 * x, 2 * y),
+        };
+    }
+    public static void 额外研究杂项() {
+        global::System.Console.WriteLine(); //保证调用的是全局下的System.Console.WriteLine
+        #region goto case
+        int[] intArray = {3, 2, 1};
+        switch(intArray.Length) {
+        case > 3:
+            goto case 3;//无法用goto case > 3 这样模式匹配的case
+        case 3:
+            Console.Write(intArray[2]);
+            goto case 2;
+        case 2:
+            Console.Write(intArray[1]);
+            goto case 1;
+        case 1:
+            Console.Write(intArray[0]);
+            goto default;
+        default:
+            Console.WriteLine();
+            break;
+        }
+        #endregion
     }
     #endregion
     private static void Shows(params object[] objs) {
