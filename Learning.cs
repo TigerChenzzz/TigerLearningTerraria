@@ -8,6 +8,7 @@
 #pragma warning disable CS0649 // 从未对字段赋值, 字段将一直保持其默认值 null
 #pragma warning disable IDE0059 // 不需要赋值
 #pragma warning disable IDE0060 // 删除未使用的参数
+#pragma warning disable IDE0018 // 内联变量声明
 
 #if Terraria143
 using IL.Terraria.GameContent.UI;
@@ -19,15 +20,20 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using ReLogic.Content;
 using ReLogic.Graphics;
 using ReLogic.OS;
 using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Terraria.Audio;
@@ -101,6 +107,13 @@ public class Learning {
             Show(item.type);
             Show(ItemID.None);//仅限原版
             Show(ModContent.ItemType<UnloadedItem>());
+            #endregion
+            #region 给予物品前缀
+            item.Prefix(0);     //什么都不做, 返回false
+            item.Prefix(-1);    //随机前缀(箱子生成, 开始给予, 物品掉落等)
+            item.Prefix(-2);    //哥布林重铸(不会重铸到没有前缀)
+            item.Prefix(-3);    //只是检查是否可以拥有任意前缀, 不给予
+            item.Prefix(PrefixID.Large);    //给予特定前缀
             #endregion
         }
         /// <summary>
@@ -701,7 +714,7 @@ public class Learning {
         Main.NewTextMultiline("multilineInfo\nmultilineInfo line 2");   //一次输出多行
     }
 
-    public class 保存数据 {
+    public class 存取数据 {
         public class ModItem保存数据 : ModItem {
             //假设这是你需要保存的数据
             public int dataToSave;
@@ -719,6 +732,22 @@ public class Learning {
                 }
             }
         }
+    }
+    public class 添加设置 {
+        public static ModConfig modConfig;  //当然大部分情况下你需要继承这个而不是直接用这个
+        public static void ShowModConfig() {
+            Show(typeof(ConfigManager));    //这里基本上管理着ModConfig的各种功能(如存储)
+        }
+        public class ExampleModConfig : ModConfig {
+            /// <summary>
+            /// 是客户端配置还是服务端配置
+            /// </summary>
+            public override ConfigScope Mode => ConfigScope.ServerSide;
+
+            public int SomethingYouWantToConfig;
+        }
+        //详见此处
+        public static Document.ModConfig_cls DetailedInfo;
     }
     public class 吟唱武器 {
         public static string 介绍 = """
@@ -4451,6 +4480,7 @@ public class Learning {
         }
         #endregion
         #region namespace Terraria.ModLoader
+        #region namespace Terraria.ModLoader;
         public class Mod_cls {
             public static Mod mod;
             public static string intro = "一个mod需要有一个且仅一个继承自此类的类";
@@ -4545,9 +4575,41 @@ public class Learning {
         public class ModSystem_cls {
             public static ModSystem modSystem;
             public static string intro = "额外的系统";
-            public static string load_func = "重写Load()以在加载阶段做一些事情";
-            public static string saveWorldData = "重写SaveWorldData(tagCompound)以保存数据";
-            public static string loadWorldData = "重写LoadWorldData(tagCompound)以载入数据";
+            public class ExampleModSystem : ModSystem {
+                /// <summary>
+                /// <br/>重写以在加载阶段做一些事情
+                /// <br/>此时不能保证Mod本身已加载完成
+                /// <br/>如果要使用Mod, 则需在<see cref="OnModLoad"/>中完成
+                /// </summary>
+                public override void Load() {
+                    base.Load();
+                }
+                /// <summary>
+                /// <br/>在<see cref="Mod.Load"/>完成后立即执行
+                /// <br/>这样可以保证Mod已存在, 且已加载
+                /// </summary>
+                public override void OnModLoad() {
+                    base.OnModLoad();
+                }
+                /// <summary>
+                /// <br/>保存世界数据
+                /// <br/>提供的<paramref name="tag"/>总是没有内容的(但不是null)
+                /// <br/>在<paramref name="tag"/>中写入数据
+                /// <br/>需和<see cref="LoadWorldData"/>一起重写
+                /// </summary>
+                public override void SaveWorldData(TagCompound tag) {
+                    tag.SetWithDefault("data", 1);
+                }
+                /// <summary>
+                /// <br/>读取世界数据
+                /// <br/>tag一般为在<see cref="SaveWorldData"/>中保存的数据
+                /// <br/>也有可能是没有内容的(不是null)(在还没保存时)
+                /// <br/>需和<see cref="SaveWorldData"/>一起重写
+                /// </summary>
+                public override void LoadWorldData(TagCompound tag) {
+                    tag.GetWithDefault<int>("data", out _);
+                }
+            }
         }
         public class ModPlayer_cls {
             public static ModPlayer modPlayer;
@@ -4695,6 +4757,18 @@ public class Learning {
                 npcShop.Register();     //将此商店注册到对应NPC上, 这样它才真的有这个商店
             }
         }
+        public class AutoloadAttribute_attr {
+            public static AutoloadAttribute autoloadAttr;
+            [Autoload(Side = ModSide.Both)]
+            public class ExampleModSystemThatAutoloadOnBothSide : ModSystem { }
+            [Autoload(Side = ModSide.Client)]
+            public class ExampleModSystemThatAutoloadOnClientSide : ModSystem { }
+            [Autoload(Side = ModSide.Server)]
+            public class ExampleModSystemThatAutoloadOnServerSide : ModSystem { }
+            [Autoload(false)]
+            public class ExampleModSystemThatDontAutoload : ModSystem { }
+        }
+        #endregion
         #region Terraria.ModLoader.IO
         public class TagCompound_cls {
             public static TagCompound tagCompound;
@@ -4755,6 +4829,188 @@ public class Learning {
                 Do(def.Type);
             }
         }
+        public class ModConfig_cls {
+            public static string intro = $"""
+                继承{nameof(ModConfig)}的类会作为一个配置文件被加载
+                里面的公开且实例的字段和属性会被序列化保存, 初始化后会被反序列化设置
+                而私有的及内部的字段或属性则不会因反序列化被设置, 也不会因为序列化而被保存
+                没有set访问器而有get访问器的属性会被显示但不能被修改(会是灰色字样, 但似乎仍会被保存)
+                只有set访问器而没有get访问器的属性会让tmodloader崩溃
+                """;
+            public class ExampleModConfig : ModConfig {
+                /// <summary>
+                /// 是客户端配置还是服务端配置
+                /// 必须重写的项
+                /// </summary>
+                public override ConfigScope Mode => ConfigScope.ServerSide;
+                #region 可以添加的特性
+                //以下所有特性都是可选的
+                [Header("$Mods.ModName.Configs.ExampleModConfig.Headers.SomeHeader")]//在此条前显示一个标头, 字符串前加'$'表示本地化键值
+                //相当于[Header("SomeHeader")]
+                public int IntWithAHeaderAhead;
+
+                #region 设置默认值
+                [DefaultValue(2)]//设置默认值, 也可以直接设置默认值(在后面加 = <默认值>), 或者在无参构造函数中初始化
+                public int IntWithADefaultValueOf2;
+
+                [DefaultValue(typeof(Color), "12, 12, 12, 255")]//对于某些不方便在特性中直接设置默认值的可以使用这个
+                public Color ColorWithCustomDefaultValue;
+                #endregion
+
+                [BackgroundColor(178, 53, 103, 200)]//设置此条的背景颜色
+                public int IntWithCustomBackgroundColor;
+
+                //以下这四个特性也可以对数组或列表使用, 相当于对其中的元素套用此特性(对Vector2也是可以的)
+                [Range(0, 10)]//设置范围, 默认中 float 为 0 - 1, int 为 0 - 100, byte 为 0 - 255, 不过这个只会限制UI, 通过某些方法仍会越过此限制
+                [Increment(2)]//设置可设置的值的最小间隔, 同样只会限制UI, 通过某些方法仍会越过此限制
+                [Slider]//使用滑动条显示, 目前只影响int类型, 其它某些类型默认就是有滑动条的(如float, enum等)
+                [DrawTicks]//对于滑动条, 是否在每个可选值上标上刻度(推荐在枚举值以及可选值不多的滑动条中使用)
+                public int IntWithASlider;
+
+                [OptionStrings(new string[]{"One", "Two", "Three"})]//对于字符串类型, 固定它只能是这么几个值
+                public string StringWithStaticOptions = "One";
+
+                [SeparatePage]//让此条显示为一个按钮, 点进去为单独的一页来设置此条(好像类默认就是采用的这个)
+                public List<int> ListThatShowInSeparatePage = new();
+
+                [ReloadRequired]//如果加上这个, 意味着只要对此条的值作出改变, 就需要重新加载整个模组
+                public int IntThatRequireReload;
+
+                [LabelKey($"Mods.{nameof(TigerLearning)}.Configs.{nameof(IntThatWithCustomLabelAndTooltip)}.Label")]//设置此条的标签的本地化键值, 默认即为此处的值
+                [TooltipKey($"Mods.{nameof(TigerLearning)}.Configs.{nameof(IntThatWithCustomLabelAndTooltip)}.Tooltip")]//设置此条的提示(鼠标放上去时显示的文本)的本地化键值, 默认即为此处的值
+                [LabelArgs("1", "2")]//如果对应的本地化字符串有参数, 从这里传入
+                [TooltipArgs("1", "2")]
+                public int IntThatWithCustomLabelAndTooltip;
+
+                [JsonIgnore]//使之既不会在配置中显示, 也不会被序列化保存
+                [ShowDespiteJsonIgnore]//即使有JsonIgnore也会在配置中显示, 但仍不会被序列化保存
+                public int IntThatWontBeSavedButWouldStillShowUp;
+
+                //使用指定的方法序列化与反序列化
+                [JsonConverter(typeof(StringEnumConverter))]//让枚举值用字符串保存下来, 易于json文件的阅读
+                public EquipType EnumWithGivenConverter;
+                #endregion
+                #region 可以直接使用的数据类型
+		        public bool SomeBool;
+		        public int SomeInt; //int默认显示的会是一个文本输入框
+		        public float SomeFloat;
+		        public string SomeString;
+                #region 自定义枚举类型
+                public enum ExampleCustomEnum {
+                    [LabelKey("Mods.{nameof(TigerLearning)}.Configs.{nameof(ExampleCustomEnum)}.{nameof(ExampleCustomEnum.One)}.Label")]    //TBT
+                    [TooltipKey("Mods.{nameof(TigerLearning)}.Configs.{nameof(ExampleCustomEnum)}.{nameof(ExampleCustomEnum.One)}.Tooltip")]
+                    One,
+                    Two,
+                    Three,
+                }
+                public static string CustomEnumLocalization = $"""
+                    对于自定义枚举类型, 需要在本地化文本中给出每个枚举值的label
+                    具体需要:
+                    Mods.{nameof(TigerLearning)}.Configs.{nameof(ExampleCustomEnum)}.Label
+                    Mods.{nameof(TigerLearning)}.Configs.{nameof(ExampleCustomEnum)}.Tooltip   //会被实例上的Tooltip覆盖
+                    Mods.{nameof(TigerLearning)}.Configs.{nameof(ExampleCustomEnum)}.{nameof(ExampleCustomEnum.One)}.Label  //对于每个枚举值都需要, 可以用LabelKey改写
+                                                                                                                            //似乎给枚举值设置Tooltip是不需要的
+                    """;
+                public ExampleCustomEnum SomeCustomEnum;
+                #endregion
+		        public EquipType SomeEnum;
+		        public byte SomeByte;
+		        public uint SomeUInt;
+                
+		        public Color SomeColor;
+		        public Vector2 SomeVector2;
+                
+		        public int[] SomeArray = new int[] { 25, 70, 12 };    //数组, 需要给初始值以固定长度
+		        public List<int> SomeList = new() { 1, 3, 5 }; //列表, 可以不用初始化, 这样默认会是null, 可以在配置界面进行初始化
+		        public Dictionary<string, int> SomeDictionary = new();
+		        public HashSet<string> SomeSet = new();
+
+                #region SimpleData具体构造
+                [BackgroundColor(255, 7, 7)]
+	            public class SimpleData
+	            {
+		            [Header("FirstHeader")]
+		            public int boost;
+		            public float percent;
+
+		            [Header("SecondHeader")]
+		            public bool enabled;
+
+		            [DrawTicks]
+		            [OptionStrings(new string[] { "Pikachu", "Charmander", "Bulbasaur", "Squirtle" })]
+		            [DefaultValue("Bulbasaur")]
+		            public string FavoritePokemon;
+
+		            public SimpleData() {
+			            FavoritePokemon = "Bulbasaur";
+		            }
+
+		            public override bool Equals(object obj) {
+			            if (obj is SimpleData other)
+				            return boost == other.boost && percent == other.percent && enabled == other.enabled && FavoritePokemon == other.FavoritePokemon;
+			            return base.Equals(obj);
+		            }
+
+		            public override int GetHashCode() {
+			            return new { boost, percent, enabled, FavoritePokemon }.GetHashCode();
+		            }
+	            }
+                #endregion
+                //嵌套一个类会自动实现
+                public SimpleData SomeClassA;
+
+                //这里不要用ModContent.ItemType<ClassName>()以在初始化中获取物品名字, 因为配置的加载在大多数内容之前
+                public ItemDefinition SomeItem = new(nameof(TigerLearning), "ExampleItem");
+                public NPCDefinition SomeNPC;
+                public ProjectileDefinition SomeProjectile;
+                public PrefixDefinition SomePrefix;
+                #endregion
+
+                /// <summary>
+                /// 在多人模式下用以控制每个客户端能否对此配置作出改动(需要为服务端配置)
+                /// </summary>
+                public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message) {
+                    //如果不是主机, 则不允许改配置
+                    if(!NetMessage.DoesPlayerSlotCountAsAHost(whoAmI)) {
+                        message = NetworkText.FromKey("tModLoader.ModConfigRejectChangesNotHost");
+                        //NetworkText也可以由LocalizedText.ToNetworkText()得到
+                        return false;
+                    }
+
+                    #region 专用服务器中使用HEROsMod以管理是否可配置
+                    //参考 https://github.com/JavidPack/ShorterRespawn/blob/1.4/ShorterRespawnConfig.cs#L85
+                    if (ModLoader.TryGetMod("HEROsMod", out Mod hero) && hero.Version >= new Version(0, 2, 2)) {
+                        if (hero.Call("HasPermission", whoAmI, "ModifyTigerLearningExampleModConfig") is bool result && !result) {
+                            message = NetworkText.FromKey("tModLoader.ModConfigRejectChangesNotHost");
+                            return false;
+                        }
+                    }
+                    #endregion
+
+                    return true;
+                }
+
+                #region 兼容旧版本
+                /// <summary>
+                /// 获取到反序列化时未被使用的数据
+                /// </summary>
+		        [JsonExtensionData]
+		        private IDictionary<string, JToken> _additionalData = new Dictionary<string, JToken>();
+
+                //假如原本有一个OldListOfInts, 但是改名为了NewListOfInts
+                public List<int> NewListOfInts;
+
+                [OnDeserialized]
+                void OnDeserialized(StreamingContext context) {
+			        if (_additionalData.TryGetValue("OldListOfInts", out var token)) {
+				        var OldListOfInts = token.ToObject<List<int>>();
+				        NewListOfInts.AddRange(OldListOfInts);
+			        }
+			        _additionalData.Clear(); //确保它清空了否则它会崩溃的(tml的ExMod如是说)
+                }
+                #endregion
+            }
+        }
         #endregion
         #endregion
         #region namespace Terraria.Localization
@@ -4786,7 +5042,14 @@ public class Learning {
                 Color color = default, shadowColor = default;
                 float rotation = default, maxWidth = -1, spread = 2;
                 bool ignoreColors = false;
+                int hoveredSnippet = default;
                 #endregion
+                string ChatManagerParseMessage的转换规则 = """
+                    "[i:<ItemID>]"为对应ItemID的物品图标(适用原版)
+                    "[i:<ModName>/<ItemName>]"为对应模组物品的图标
+                    "[c/<Color>:<Text>]"为特定颜色的文本, Color为16进制6位数, 如00FF00代表绿色, <Text>为待显示的文本
+                    ...
+                    """;
                 var snippets = ChatManager.ParseMessage(text, color).ToArray();
                 string DrawColorCodedStringWithShadowIntro = $"""
                     这五个都相当于调用带有snippets参数的{nameof(ChatManager.DrawColorCodedStringShadow)}和{nameof(ChatManager.DrawColorCodedString)}
@@ -4797,8 +5060,8 @@ public class Learning {
                     color表示字符串的颜色, 若没有则是{Color.White}, shadowColor表示阴影的颜色, 若没有则是{Color.Black}
                     """;
                 ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text    , position, color, rotation,              origin, scaleV2, maxWidth, spread);
-                ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, snippets, position,        rotation,              origin, scaleV2, out int hoveredSnippet);
                 ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text    , position, color, shadowColor, rotation, origin, scaleV2);
+                ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, snippets, position, rotation,                     origin, scaleV2, out hoveredSnippet);
                 ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, snippets, position, rotation, color,              origin, scaleV2, out hoveredSnippet);
                 ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, snippets, position, rotation, color, shadowColor, origin, scaleV2, out hoveredSnippet);
 
@@ -5094,6 +5357,9 @@ public class Learning {
             public static string tips = """
                 在IL中压栈通常以ld开头, 出栈则以st开头
                 """;
+            public static string reference = """
+                C# IL 指令集 - 云城 - 博客园: https://www.cnblogs.com/yuncheng/p/3437419.html
+                """;
             public static void ShowOpCodes() {
                 #region params
                 ILCursor il = default;
@@ -5233,7 +5499,7 @@ public class Learning {
         #region namespace System;
         public class Console_static_cls {
             public static string intro = "用于控制台输入输出";
-            public void ShowConsole() {
+            public static void ShowConsole() {
                 Console.WriteLine("Hello World!");
                 Console.WriteLine("count {0}, and count {1}", 1, 0.0M);
             }
@@ -5260,6 +5526,101 @@ public class Learning {
                     Console.WriteLine(i);
                     Thread.Yield();
                 }
+            }
+        }
+
+        #endregion
+        #region namespace System.Treading.Tasks;
+        public class Task_cls {
+            public static Task task;
+            public static string intro = """
+                用于异步执行
+                """;
+            public static string 参考 = """
+                C#中关于Task（任务）的简单介绍 - CSDN: https://blog.csdn.net/qq_43565708/article/details/130244115
+                Task 类 - Microsoft: https://learn.microsoft.com/zh-cn/dotnet/api/system.threading.tasks.task?view=net-8.0
+                c# task三种创建方式的区别 - CSDN: https://blog.csdn.net/niechaoya/article/details/98038851
+                """;
+#pragma warning disable CS4014 // 由于此调用不会等待，因此在调用完成前将继续执行当前方法
+            public static async Task ShowTask() {
+                #region params
+                CancellationTokenSource cancellationTokenSource = default;
+                #endregion
+                task = new(() => Dos());
+                #region 开始一个任务
+                task = Task.Run(() => Dos());   //开始一个任务(同步转异步)
+                task = Task.Run(NewTask);   //开始这个任务
+                task.Start();
+                Task.Factory.StartNew(() => Dos());
+                task.RunSynchronously();    //异步转同步
+                #endregion
+                #region 等待任务完成
+                task.Wait();    //等待此任务完成(同步方法中可以使用)
+                await task;     //等待此任务完成(异步方法中使用)
+                Task.WaitAny(task, task);   //等待任一任务完成, 返回有多少个任务完成了
+                Task.WaitAll(task, task);   //等待所有任务完成
+                #endregion
+                #region 任务的状态
+                Show(task.Status);
+                Show(TaskStatus.Created);               //刚被创建但还没被安排
+                Show(TaskStatus.WaitingForActivation);  //已被安排但还没开始
+                Show(TaskStatus.Running);               //正在执行
+                Show(TaskStatus.WaitingForChildrenToComplete);//已执行完成但在隐式地等待子任务完成
+                Show(TaskStatus.RanToCompletion);       //成功地完成了
+                Show(TaskStatus.Canceled);              //被取消了
+                Show(TaskStatus.Faulted);               //引发了未经处理的异常
+
+                Show(task.IsCompleted);                 //任务是否已完成 (即任务处于三种最终状态之一： RanToCompletion、 Faulted或 Canceled)
+                Show(task.IsCompletedSuccessfully);     //任务是否成功完成, 即处于RanToCompletion状态
+                Show(task.IsCanceled);                  //任务是否被取消了
+                Show(task.IsFaulted);                   //任务是否失败了
+                #endregion
+                #region 获得结果
+                //下两句都是等到其完成然后再取结果, 如果完成不成功则会报错
+                var result = await NewTask();   //同步方法中无法使用
+                Show(NewTask().Result);
+                #endregion
+                #region 中断任务
+                cancellationTokenSource = new();
+                task = new(() => Dos(), cancellationTokenSource.Token);
+                cancellationTokenSource.Cancel();           //立即取消, 测试上看即使任务完成了再取消也不会有事
+                cancellationTokenSource.CancelAfter(200);   //在200ms后取消, 不过测试上这句好像不起作用
+                #endregion
+                #region 任务完成时自动启动新任务
+                task.ContinueWith(task => Dos());
+                //可多次调用ContinueWith, 在任务完成时会将所有传入的任务放进线程池的队列中
+                #endregion
+                #region 子任务
+                task = new Task<int[]>(() => {
+                    var result = new int[3];
+                    new Task(() => result[0] = 0, TaskCreationOptions.AttachedToParent).Start();
+                    new Task(() => result[1] = 1, TaskCreationOptions.AttachedToParent).Start();
+                    new Task(() => result[2] = 2, TaskCreationOptions.AttachedToParent).Start();
+                    return result;
+                });//这样当内含的三个子任务还没有完成时此任务也不算完成状态
+                #endregion
+                #region 任务工厂
+                //以避免将相同的参数传给每个Task的构造器
+                task = new Task(() => {
+                    cancellationTokenSource = new();
+                    var taskFactory = new TaskFactory<bool>(
+                        cancellationTokenSource.Token,
+                        TaskCreationOptions.AttachedToParent,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
+                    var childTask = Range(3).ForeachDo(i => taskFactory.StartNew(() => Do(i)));
+                });
+                #endregion
+            }
+#pragma warning restore CS4014 // 由于此调用不会等待，因此在调用完成前将继续执行当前方法
+
+            /// <summary>
+            /// 创建一个异步任务
+            /// </summary>
+            public static async Task<int> NewTask() {
+                Console.WriteLine("New Task!");
+                await task;
+                return 2;
             }
         }
         #endregion
@@ -5507,3 +5868,4 @@ public class Learning {
 #pragma warning restore CS0649 // 从未对字段赋值, 字段将一直保持其默认值 null
 #pragma warning restore IDE0059 // 不需要赋值
 #pragma warning restore IDE0060 // 删除未使用的参数
+#pragma warning restore IDE0018 // 内联变量声明
