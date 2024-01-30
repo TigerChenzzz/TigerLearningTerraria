@@ -12,16 +12,6 @@
     <None Remove="**\*.png" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Common\GlobalItems\" />
-    <Folder Include="Common\GlobalNPCs\" />
-    <Folder Include="Common\GlobalProjectiles\" />
-    <Folder Include="Common\Players\" />
-    <Folder Include="Content\Buffs\" />
-    <Folder Include="Content\Items\" />
-    <Folder Include="Content\Projectiles\" />
-    <Folder Include="Content\Tiles\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ImproveGame\ImproveGame.csproj" />
   </ItemGroup>
   <ItemGroup>

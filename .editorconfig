@@ -1,0 +1,13 @@
+[*.cs]
+
+# CA2211: 非常量字段应当不可见
+dotnet_diagnostic.CA2211.severity = none
+
+# CS0219: 变量已被赋值，但从未使用过它的值
+dotnet_diagnostic.CS0219.severity = none
+
+# IDE0059: 不需要赋值
+dotnet_diagnostic.IDE0059.severity = none
+
+# IDE0060: 删除未使用的参数
+dotnet_diagnostic.IDE0060.severity = none
