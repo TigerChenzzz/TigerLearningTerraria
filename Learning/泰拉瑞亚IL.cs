@@ -1,8 +1,8 @@
-﻿using MonoMod.Cil;
+﻿using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
+using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
-using static TigerLearning.Learning.Learning;
 
 namespace TigerLearning.Learning;
 
@@ -16,6 +16,7 @@ public class 泰拉瑞亚IL {
         public static string 参考 = "https://celestemod.saplonily.link/trans/il/";//是的, 这是蔚蓝的modder写的(
         public static string 评估栈 = $$"""
         在 IL 代码中, 大量操作符本质上都是在操作一个叫做"评估栈"的东西
+        又名 运算栈 / 运算堆栈 等
         比如如下 C# 方法: 
             static int Add(int a, int b, int c) 
             {
@@ -87,7 +88,6 @@ public class 泰拉瑞亚IL {
         通常我们会使用 callvirt 来调用成员方法, 一方面为了确保调用到了重写后的虚函数, 一方面为了尽可能早的检测出 this 为 null
         """;
         public static string 局部变量 = $"""
-        使用{nameof(ILGenerator.DeclareLocal)}以声明一种类型的局部变量, 声明的顺序即为它们的编号(从0开始)
         使用 stloc.0({nameof(OpCodes.Stloc_0)}) 以将栈顶弹出并存到0号位的局部变量上
         使用 ldloc.0({nameof(OpCodes.Ldloc_0)}) 以读取0号位的局部变量的值压入栈中(可重复压栈)
         使用 dup({nameof(OpCodes.Dup)}) 以弹出栈顶的元素, 然后压入两遍这个元素
@@ -115,7 +115,7 @@ public class 泰拉瑞亚IL {
             br({nameof(OpCodes.Br)})          无条件地将控制转移到目标指令
             brfalse({nameof(OpCodes.Brfalse)})如果 value 为 false、空引用零，则将控制转移到目标指令
             brtrue({nameof(OpCodes.Brtrue)})  如果 value 不满足上条的条件，则将控制转移到目标指令
-        可通过{nameof(ILGenerator.DefineLabel)}定义标记, {nameof(ILGenerator.MarkLabel)}打上标记, 将此Label作为跳转的参数
+        可通过{nameof(ILContext.DefineLabel)}或{nameof(ILCursor.DefineLabel)}定义标记, {nameof(ILCursor.MarkLabel)}打上标记, 将此Label作为跳转的参数
         """;
         public static string 短格式版本指令 = """
         (.s 系指令)
@@ -126,59 +126,152 @@ public class 泰拉瑞亚IL {
         对于我们的话如果你想微微的优化一下你的 IL 的大小的话, 你可以选择在参数范围够用的情况下使用 .s 版本
         """;
     }
+    public Documents.Document.OpCodes_static_cls 更多的IL指令;
     public static void 挂IL钩子() {
         string 参考 = "https://celestemod.saplonily.link/trans/adv_hooks/";
         //首先找到要钩取的方法, 在Mod.Load重写或ModSystem.Load重写中写下此句
         IL_Main.DrawInfoAccs += IL_Main_DrawInfoAccs;
         //如果IL_Xxx中没有给出想要钩取的方法可参考下条
-        Show(typeof(泰拉瑞亚On.给任意方法上钩子));
+        Show<泰拉瑞亚On.给任意方法上钩子>();
         //通过以上两种方法加载的钩子TML保证会卸载
+        Show<泰拉瑞亚On.给任意方法上钩子而且不自动卸载的那种_可脱离TML使用>();
         static void IL_Main_DrawInfoAccs(ILContext il) {
-            //ILContext表示这个方法的 IL 上下文
-
+            // 这里写IL
         }
     }
-    public class 给任意方法上钩子而且不自动卸载的那种_可脱离TML使用 {
-        public delegate object MethodDelegate(object self, params object[] parameters);
-        public static object MethodHook(MethodDelegate orig, object self, params object[] parameters) {
-            //这里写On
-            return orig(self, parameters);
+    public static string 关于指针语句和标签的位置关系 = $"""
+        指针: {nameof(ILCursor)}, 语句: {nameof(Instruction)}, 标签: {nameof(ILLabel)}
+        指针的位置处于语句的缝隙中, 包括第一条语句前和最后一条语句后
+            指针的上一句和下一句是挨在一起的
+        标签指向一个语句, 可以看作在语句之前的位置, 一个语句可能会有多个标签指向它
+        语句本身不保存关于指向自己的标签的数据, 若需要则要从ILContext.Labels中搜索获得
+        指针内部存有 ILLabel[]类型的 _afterLabels 数据标明自己在下一条语句的哪些标签后
+            即指针默认是在下一条语句的所有标签之前的
+        当指针插入一条语句时, 会将 _afterLabels 中的标签导向到新插入的语句上,
+            以表现出指针和标签之间的位置关系
+        另外使用{nameof(ILCursor.Emit)}插入一条语句时, 指针会跳到这条语句之后, 方便
+            继续插入语句
+        """;
+    public static void 如何写钩子(ILContext il) {
+        // 一般我们需要至少一个IL指针:
+        ILCursor cursor = new(il);  // 指针初始会位于所有语句之前, 方法的开头处
+        #region 定位
+        Show("""
+        假如需要定位到一句 value += 1; 之前查看到对应的IL语句为:
+            ldloc.0
+            ldc.i4.1
+            add
+            stloc.0
+        则下面这条语句就会定位到这句之前
+        """);
+        cursor.TryGotoNext(MoveType.AfterLabel,
+            ILPatternMatchingExt.MatchLdloc0,
+            i => i.MatchLdcI4(1),
+            ILPatternMatchingExt.MatchAdd,
+            ILPatternMatchingExt.MatchStloc0);
+        // 定位功能还有其他几个变体
+        cursor.TryGotoPrev();   //向前查找, 同样也是遇到第一组符合条件的语句就停下
+        cursor.GotoNext();      //若没找到对应语句则直接报错
+        cursor.GotoPrev();
+        Show($"""
+        需要注意方法中可能不止一组语句符合上面的条件
+        上面的语句会定位到cursor之前或之后的满足条件的第一组语句前
+        如果要跳到第二组或者之后的相同语句, 可以多次调用以上方法
+            当多次调用GotoNext系列的方法时, ILCursor会尝试避免定位到与上次相同的位置
+                具体原理为ILCursor有一个{nameof(ILCursor.SearchTarget)}, 默认为{SearchTarget.None},当
+                    调用GotoNext系列的方法时, 若moveType是{MoveType.After}则将其设置为{SearchTarget.Prev},
+                    否则设置为{SearchTarget.Next}.
+                    而在开始时如果是向后查找而其是{SearchTarget.Next}, 或者反之, 则会跳过指针之后或者之
+                    前的第一句, 从第二句开始查找.
+        关于moveType参数:
+            默认为{MoveType.Before}, 代表定位到这组语句之前
+            如果要在这组语句之前插入语句, 则最好使用{MoveType.AfterLabel}, 
+                这样会将指向这组语句的第一条的所有标签重定向到插入的语句上,
+                保证这组语句前必然是所插入的语句
+            使用{MoveType.After}则会定位到这组语句之后
+
+        如果只是简单的想跳过下一条语句则并不建议使用GotoNext系列, 可以直接按下面的方法写:
+        """);
+        // 跳过下一条语句
+        cursor.Next = cursor.Next.Next; // 需要注意如果cursor在末尾的话cursor.Next会是空, 此时会报错
+        // 回到上一条语句之前
+        cursor.Next = cursor.Prev;  // 如果cursor在开头cursor.Prev会是空, 此时会让指针挪到末尾
+        // 也可以这么写, 虽然它的时间效率是O(n) (需要在il.Instrs中查找它的位置)
+        cursor.Index += 1;
+
+        // 也可以直接简单粗暴的在ILContext中搜索
+        Instruction instr = il.Instrs.First(i => i.MatchLdloc0());
+        cursor.Goto(instr);     // 跳到搜索到的语句之前
+                                // 十分不推荐使用il.Instrs[i]的形式, 因为其他模组也有可能对此IL进行修改
+        #endregion
+        #region 插入IL语句
+        Show("""
+        为了安全性起见(防御性编程), 最好不要移除语句, 而只是插入语句
+        如果不想要一段语句执行, 可以在前面插入跳转, 跳转到这段语句之后
+        """);
+        // 假设0号局部变量是 value, 在 cursor 处插入一句 value += 1;
+        cursor.EmitLdloc0();
+        cursor.EmitLdcI4(1);
+        cursor.EmitAdd();
+        cursor.EmitStloc0();
+
+        // 如果想做更复杂的事情也可以直接插入函数调用
+        cursor.EmitLdloc0();
+        cursor.EmitDelegate((int i) => Math.Clamp(i, 0, 100) / 5);
+        cursor.EmitStloc0();
+
+        #region 直接压栈外部变量
+        // 假如我们现在有一个变量
+        int i = Main.DiscoColor.R;
+        // 当然这种方式是可以的:
+        cursor.EmitDelegate(() => i);
+        // 不过其实有更简单的方式:
+        int idOfI = cursor.EmitReference(i);
+        cursor.EmitGetReference<int>(idOfI); //重复调用时可以把上面的结果保留再给此方法使用
+        #endregion
+        #endregion
+        #region 跳过一段语句
+        // 找到对应的语句, 然后在其之前插入一个跳转到这段语句之后的无条件跳转
+        cursor.GotoNext(MoveType.AfterLabel,
+            ILPatternMatchingExt.MatchLdloc0,
+            i => i.MatchLdcI4(1),
+            ILPatternMatchingExt.MatchAdd,
+            ILPatternMatchingExt.MatchStloc0);
+        cursor.EmitBr(il.Instrs[cursor.Index + 4]);
+        #endregion
+        #region 不使用ILCursor
+        // 不是很推荐这种方式, 毕竟 ILCursor 已经包装好了
+        int index = 0;
+        for(; index + 3 < il.Instrs.Count; ++index) {
+            if(il.Instrs[index].MatchLdloc0()
+                && il.Instrs[index + 1].MatchLdcI4(1)
+                && il.Instrs[index + 2].MatchAdd()
+                && il.Instrs[index + 3].MatchStloc0()) {
+                break;
+            }
         }
-        public static void Manipulate(ILContext il) {
-            //这里写IL
+        if (index + 3 >= il.Instrs.Count) {
+            throw new Exception("找不到对应的语句");
         }
-        public static Hook hook;
-        public static ILHook ilHook;
-        public static void ShowHook() {
-            #region params
-            MethodBase method = default;
-            MethodInfo anotherMethod = default;
-            bool applyByDefault = default;
-            DetourConfig detourConfig = default;
-            object targetObject = default;
-            #endregion
-            #region On钩子
-            hook = new(method, MethodHook);     //挂On钩子
-            hook = new(method, MethodHook, true);     //在初始化后立即挂上去(其他的版本基本都有这个多的applyByDefault参数)
-            hook = new(method, MethodHook, detourConfig);   //配置挂钩子的顺序, 优先级等, 默认空
-            hook = new(method, MethodHook, detourConfig, applyByDefault);   //以上两种一起(基本每个版本都有这多的三种变体, 后不一一列举)
-            hook = new(method, anotherMethod);  //直接用anotherMethod替换method(TBT)
-            hook = new(method, anotherMethod, targetObject);    //修改特定对象的方法(必须直接替换, 不能用MethodHook)(同样有上面的三种变体)
-            Show(hook.Config);      //获得配置, 若无则是空
-            hook.Apply();           //挂上此钩子
-            hook.Undo();            //卸载此钩子
-            Show(hook.IsApplied);   //是否挂上了钩子
-            #endregion
-            #region IL钩子
-            ilHook = new(method, Manipulate);
-            ilHook = new(method, Manipulate, applyByDefault);   //是否立即挂上去(默认false)
-            ilHook = new(method, Manipulate, detourConfig);     //配置挂钩子的顺序, 优先级等, 默认空
-            ilHook = new(method, Manipulate, detourConfig, applyByDefault);//以上两种一起
-            Show(ilHook.Config);    //获得配置, 若无则是空
-            ilHook.Apply();         //挂上此钩子
-            ilHook.Undo();          //卸载此钩子
-            Show(ilHook.IsApplied); //是否挂上了钩子
-            #endregion
-        }
+        var labels = il.GetIncomingLabels(il.Instrs[index]);
+        // Instrs集合在添加元素时会自动设置前后元素的Next和Previous
+        il.Instrs.Insert(index + 1, il.IL.Create(OpCodes.Dup));
+        il.Instrs.Insert(index + 2, il.IL.Create(OpCodes.Add));
+        // 这样就把 value += 1; 改为了 value = value * 2 + 1;
+        // 当然其实并不推荐破坏掉一个完整的C#语句, 这样会让其他mod的IL找不到这条语句
+        #endregion
+    }
+    public static void 添加局部变量(ILContext il) {
+        // 假如需要添加一个int类型的局部变量
+        Type type = typeof(int);
+
+        // 通过下面两句就可以将一个局部变量的声明添加到il对应的方法中
+        VariableDefinition variable = new(il.Method.DeclaringType.Module.ImportReference(type));
+        il.Body.Variables.Add(variable);
+
+        // 然后就可以像对待局部变量一样对待它了
+        ILCursor cursor = new(il);
+        cursor.EmitLdloc(variable);
+        cursor.EmitStloc(variable);
     }
 }

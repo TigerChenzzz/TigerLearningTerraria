@@ -1,6 +1,5 @@
 ﻿using TigerLearning.Learning;
 using TigerLearning.Learning.额外研究;
-using static TigerLearning.Learning.Learning;
 
 namespace TigerLearning;
 

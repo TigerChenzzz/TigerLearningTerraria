@@ -59,6 +59,10 @@ public partial class Document {
             string specialInventorySlot = """
                 player.inventory[58]代指鼠标上拿起的物品, 由Main.mouseItem克隆而来。
                     实际上克隆发生在Player.dropItemCheck中, 而这个在失去焦点或者在不能使用物品时不会执行(参见Player.Update)
+                    另外在!Main.LocalPlayer.JustDroppedAnItem 且 player.selectedItem == 58 且 player.itemAnimation != 0 时
+                        Main.mouseItem反过来会是正在使用的物品的克隆 (参见Player.ItemCheck_Inner)
+                        在Player.PlaceWeapon, Player.DropCoins, TEFoodPlatter.PlaceItemInFrame, TEItemFrame.PlaceItemInFrame,
+                        TEWeaponsRack.PlaceItemInFrame等处中也有这样的克隆
                 如果要对鼠标上的东西作出修改, 不能修改这里, 而需要修改Main.mouseItem。
                 另外当鼠标上有物品时, player.HeldItem也是player.inventory[58], 所以
                 此时对player.HeldItem作出修改也是没用的(但其他时候就可以对它作出修改)。

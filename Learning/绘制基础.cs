@@ -145,4 +145,56 @@ public class 绘制基础 {
             return true;
         }
     }
+    public class ExampleDrawPostDrawTileSystem : ModSystem {
+        private Texture2D _dummyTexture;
+        public Texture2D DummyTexture {
+            get {
+                if (_dummyTexture == null) {
+                    _dummyTexture = new(Main.spriteBatch.GraphicsDevice, 1, 1);
+                    _dummyTexture.SetData(new Color[] { Color.White });
+                }
+                return _dummyTexture;
+            }
+            set => _dummyTexture = value;
+        }
+        private BlendState[] _blendStates;
+        public BlendState[] BlendStates {
+            get {
+                if(_blendStates == null) {
+                    _blendStates = [
+                        new() { ColorBlendFunction = BlendFunction.Add },
+                        new() { ColorBlendFunction = BlendFunction.Subtract },
+                        new() { ColorBlendFunction = BlendFunction.ReverseSubtract },
+                        new() { ColorBlendFunction = BlendFunction.Max },
+                        new() { ColorBlendFunction = BlendFunction.Min },
+                    ];
+                    for (int i = 0; i < 5; ++i) {
+                        var b = _blendStates[i];
+                        b.ColorDestinationBlend = Blend.SourceAlpha;
+                        b.ColorSourceBlend = Blend.SourceAlpha;
+                        b.AlphaBlendFunction = b.ColorBlendFunction;
+                        b.AlphaDestinationBlend = b.ColorDestinationBlend;
+                        b.AlphaSourceBlend = b.ColorSourceBlend;
+                    }
+                }
+                return _blendStates;
+            }
+        }
+        public override void PostDrawTiles() {
+            var spriteBatch = Main.spriteBatch;
+            Rectangle rect = new(Main.mouseX - 9, Main.mouseY - 9, 19, 19);
+            Color color = new(1, .2f, .2f);
+            for (int i = 0; i < BlendStates.Length; ++i) {
+                for (int j = 0; j <= 5; ++j) {
+                    color.A = (byte)(255 * j * 0.2f);
+                    spriteBatch.Begin(SpriteSortMode.Deferred, BlendStates[i]);
+                    spriteBatch.Draw(DummyTexture, rect, color);
+                    spriteBatch.End();
+                    rect.Y += 20;
+                }
+                rect.Y -= 20 * 6;
+                rect.X += 20;
+            }
+        }
+    }
 }

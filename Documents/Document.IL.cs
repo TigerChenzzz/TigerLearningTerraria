@@ -29,17 +29,6 @@ public partial class Document {
         public static string intro = """
             指示il的位置, 可以理解为处于两个语句之间
             """;
-        public static string 关于指针语句和标签的位置关系 = $"""
-            指针: {nameof(ILCursor)}, 语句: {nameof(Instruction)}, 标签: {nameof(ILLabel)}
-            指针的位置处于语句的缝隙中, 包括第一条语句前和最后一条语句后
-                指针的上一句和下一句是挨在一起的
-            标签指向一个语句, 可以看作在语句之前的位置, 一个语句可能会有多个标签指向它
-            语句本身不保存关于指向自己的标签的数据, 若需要则要从ILContext.Labels中搜索获得
-            指针内部存有 ILLabel[]类型的 _afterLabels 数据标明自己在下一条语句的哪些标签后
-                即指针默认是在下一条语句的所有标签之前的
-            当指针插入一条语句时, 会将 _afterLabels 中的标签导向到新插入的语句上,
-                以表现出指针和标签之间的位置关系
-            """;
         public static void ShowILCursor() {
             #region params
             ILContext ilContext = default;
@@ -51,6 +40,7 @@ public partial class Document {
             FieldInfo fieldInfo = default;
             FieldReference fieldReference = default;
             ILLabel label = default;
+            ILLabel[] labels = default;
             int index = default;
             Main any = default;
             #endregion
@@ -155,7 +145,7 @@ public partial class Document {
             ilCursor.EmitLdarg0();
             ilCursor.EmitLdarg1();
             ilCursor.EmitLdarg(10);
-            ilCursor.EmitLdarg(parameterReference);  //TBT
+            ilCursor.EmitLdarg(parameterReference);
             #endregion
             #region 设置参数
             ilCursor.EmitStarg(3);
@@ -166,12 +156,12 @@ public partial class Document {
             ilCursor.EmitLdloc0();
             ilCursor.EmitLdloc1();
             ilCursor.EmitLdloc(10);
-            ilCursor.EmitLdloc(variableReference);  //TBT
+            ilCursor.EmitLdloc(variableReference);
             #endregion
             #region 设置局部变量
             ilCursor.EmitStloc0();
             ilCursor.EmitStloc(22);
-            ilCursor.EmitStloc(variableReference);  //TBT
+            ilCursor.EmitStloc(variableReference);
             #endregion
             #endregion
             #region 调用方法或属性
@@ -205,10 +195,12 @@ public partial class Document {
             ilCursor.EmitBneUn  (label);
             ilCursor.EmitBrtrue (label);
             ilCursor.EmitBrfalse(label);
-            ilCursor.EmitBle(instruction);
+            ilCursor.EmitBle(label);
+            ilCursor.EmitSwitch(labels);
             #endregion
             #region .s系指令
             //好像并没有直接给出ilCursor.EmitXxxS的指令
+            ilCursor.Emit(OpCodes.Ldc_I4_S, 1);
             #endregion
             #region 其他指令
             ilCursor.EmitBreak();
@@ -273,6 +265,7 @@ public partial class Document {
             FieldInfo fieldInfo = default;
             Instruction insctruction = default;
             ILLabel label = default;
+            ILLabel[] labels = default;
             ParameterReference parameterReference = default;
             VariableReference variableReference = default;
             #endregion
@@ -365,6 +358,7 @@ public partial class Document {
             il.Emit(OpCodes.Bne_Un, label);     //当比较无符号整数值或不可排序的浮点型值时, 不等于时跳转
             il.Emit(OpCodes.Brfalse, label);    //为假时跳转(包括空或0)
             il.Emit(OpCodes.Brtrue, label);     //为真时跳转(包括非空非0值)
+            il.Emit(OpCodes.Switch, labels);    //从栈顶弹出一个无符号整数值, 跳转到labels对应下标的标签处
             #endregion
             #region .s系指令
             Show(泰拉瑞亚IL.一个入门IL教程.短格式版本指令);
@@ -376,7 +370,7 @@ public partial class Document {
             il.Emit(OpCodes.Br_S);
             #endregion
             #region 其他指令
-            il.Emit(OpCodes.Break);    //引发断点
+            il.Emit(OpCodes.Break);    //引发断点 (C# 的 break 语句实际上对应的是无条件跳转)
             #endregion
             Show(OpCodes.Ret);              //返回, 无参, 会检查栈, 若无返回值则栈需为空, 若有栈中应只有需要返回的值
             Show(OpCodes.Nop);              //空语句

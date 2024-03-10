@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using ReLogic.Content;
 using System.Reflection;
 using Terraria.GameContent.UI.Elements;
@@ -174,12 +175,17 @@ public class 泰拉瑞亚On {
         /// <summary>
         /// 代表原方法, 若为静态方法则没有<paramref name="self"/>
         /// </summary>
-        /// <param name="self">此类的实例</param>
+        /// <param name="self">
+        /// <br/>此类的实例
+        /// <br/>当方法为静态方法时没有这个参数
+        /// <br/>当此类为值类型时此参数需为ref引用
+        /// </param>
         /// <param name="parameters">此方法的参数, 实际使用时需用对应参数替代</param>
-        delegate void MethodDelegate(object self, params object[] parameters);
-        static void MethodHook(MethodDelegate orig, object self, params object[] parameters) {
+        /// <returns>若此方法没有返回值则返回类型为void</returns>
+        delegate object MethodDelegate(object self, params object[] parameters);
+        static object MethodHook(MethodDelegate orig, object self, params object[] parameters) {
             //要改什么在这里写(On)
-            orig.Invoke(self, parameters);
+            return orig.Invoke(self, parameters);
         }
         static void Manipulate(ILContext il) {
             //IL代码写在这儿
@@ -188,6 +194,49 @@ public class 泰拉瑞亚On {
             MethodBase method = default;    //使用反射获取
             MonoModHooks.Add(method, MethodHook);   //ON, 会在Mod卸载时自动卸载
             MonoModHooks.Modify(method, Manipulate);  //IL, 但由于我不知道所以就放这儿
+        }
+    }
+    public class 给任意方法上钩子而且不自动卸载的那种_可脱离TML使用 {
+        public delegate object MethodDelegate(object self, params object[] parameters);
+        public static object MethodHook(MethodDelegate orig, object self, params object[] parameters) {
+            //这里写On
+            return orig(self, parameters);
+        }
+        public static void Manipulate(ILContext il) {
+            //这里写IL
+        }
+        public static Hook hook;
+        public static ILHook ilHook;
+        public static void ShowHook() {
+            #region params
+            MethodBase method = default;
+            MethodInfo anotherMethod = default;
+            bool applyByDefault = default;
+            DetourConfig detourConfig = default;
+            object targetObject = default;
+            #endregion
+            #region On钩子
+            hook = new(method, MethodHook);     //挂On钩子
+            hook = new(method, MethodHook, true);     //在初始化后立即挂上去(其他的版本基本都有这个多的applyByDefault参数, 默认为true)
+            hook = new(method, MethodHook, detourConfig);   //配置挂钩子的顺序, 优先级等, 默认空
+            hook = new(method, MethodHook, detourConfig, applyByDefault);   //以上两种一起(基本每个版本都有这多的三种变体, 后不一一列举)
+            hook = new(method, anotherMethod);  //直接用anotherMethod替换method(TBT)
+            hook = new(method, anotherMethod, targetObject);    //修改特定对象的方法(必须直接替换, 不能用MethodHook)(同样有上面的三种变体)
+            Show(hook.Config);      //获得配置, 若无则是空
+            hook.Apply();           //挂上此钩子
+            hook.Undo();            //卸载此钩子
+            Show(hook.IsApplied);   //是否挂上了钩子
+            #endregion
+            #region IL钩子
+            ilHook = new(method, Manipulate);
+            ilHook = new(method, Manipulate, applyByDefault);   //是否立即挂上去(默认false)
+            ilHook = new(method, Manipulate, detourConfig);     //配置挂钩子的顺序, 优先级等, 默认空
+            ilHook = new(method, Manipulate, detourConfig, applyByDefault);//以上两种一起
+            Show(ilHook.Config);    //获得配置, 若无则是空
+            ilHook.Apply();         //挂上此钩子
+            ilHook.Undo();          //卸载此钩子
+            Show(ilHook.IsApplied); //是否挂上了钩子
+            #endregion
         }
     }
 }
