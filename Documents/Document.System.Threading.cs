@@ -5,7 +5,7 @@ namespace TigerLearning.Documents;
 public partial class Document {
     public class Thread_cls {
         public static Thread thread;
-        public static string intro = "线程";
+        public const string intro = "线程";
         public static void ShowThread() {
             Show(Thread.CurrentThread); //获得当前线程
             Show(thread.Name);          //线程的名字

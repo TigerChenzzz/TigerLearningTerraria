@@ -1,7 +1,7 @@
 ﻿namespace TigerLearning.Learning;
 
 public class 源码下的基本文件 {
-    public static string 必要文件 = """
+    public const string 必要文件 = """
         build.txt       : 如何构建此模组
         [Mod名].cs      : 相当于主类
         [Mod名].csproj  : 包含了哪些文件
@@ -9,13 +9,13 @@ public class 源码下的基本文件 {
         icon.png        : 好像也不是必须的, 但最好有作为图标
         """;
     public class Build_txt {
-        public static string 参考 = "Mod基本信息 https://fs49.org/2020/03/09/mod%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af/";
-        public static string 基本形式 = """
+        public const string 参考 = "Mod基本信息 https://fs49.org/2020/03/09/mod%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af/";
+        public const string 基本形式 = """
             [key1] = [value1]
             [key2] = [value2]
             ...
             """;
-        public static string 支持的一些键 = """
+        public const string 支持的一些键 = """
             displayName    : Mod在TML里显示的名字(不是文件夹的名字哦, 可以是中文)
             author         : 作者的名字
             version        : Mod的版本, 会在Mod菜单中显示。注意, 这个属性是要求格式的。格式如下  <数字>.<数字>.<数字>.<数字>, 也就是我们最常见到的版本号的格式, 这里我取了1.0

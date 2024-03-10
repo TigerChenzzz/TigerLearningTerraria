@@ -1,11 +1,11 @@
 ﻿namespace TigerLearning.Learning;
 
 public class 添加坐骑 {
-    public static string 介绍 = """
+    public const string 介绍 = """
         贴图命名格式: 坐骑名_Front.png 或者 坐骑名_Back.png
         """;
     public class ExampleMountItem : ModItem {
-        public static string 参考 = "从零开始的简单坐骑 https://fs49.org/2022/01/17/%e4%bb%8e%e9%9b%b6%e5%bc%80%e5%a7%8b%e7%9a%84%e7%ae%80%e5%8d%95%e5%9d%90%e9%aa%91/";
+        public const string 参考 = "从零开始的简单坐骑 https://fs49.org/2022/01/17/%e4%bb%8e%e9%9b%b6%e5%bc%80%e5%a7%8b%e7%9a%84%e7%ae%80%e5%8d%95%e5%9d%90%e9%aa%91/";
         public override void SetDefaults() {
             //...
             Item.mountType = ModContent.MountType<ExampleMount>();
@@ -13,7 +13,7 @@ public class 添加坐骑 {
         }
     }
     public class ExampleMount : ModMount {
-        public static string 参考 = ExampleMountItem.参考;
+        public const string 参考 = ExampleMountItem.参考;
         public override void SetStaticDefaults() {
             MountData.spawnDust = DustID.Torch;     //召唤坐骑时的粒子特效
             MountData.buff = ModContent.BuffType<ExampleMountBuff>();
@@ -78,7 +78,7 @@ public class 添加坐骑 {
         }
     }
     public class ExampleMountBuff : ModBuff {
-        public static string 参考 = ExampleMountItem.参考;
+        public const string 参考 = ExampleMountItem.参考;
         public override void SetStaticDefaults() {
             //...
             Main.buffNoTimeDisplay[Type] = true;
@@ -90,7 +90,7 @@ public class 添加坐骑 {
         }
     }
     public class 简易自由悬浮坐骑 : ModMount {
-        public static string 参考 = ExampleMountItem.参考;
+        public const string 参考 = ExampleMountItem.参考;
         public override void UpdateEffects(Player player) {
             float verticalSpeedMax = 15f;
             float verticalAcc = 0.5f;

@@ -21,7 +21,7 @@ public class 物块基础 {
         #endregion
 
     }
-    public static string 帧图 = """
+    public const string 帧图 = """
         物块都是以16 X 16的规格等分成小块, 每个小块之间都要有2像素的间隔
         物块的帧图无论是竖的还是横的, 都是可以的
         """;
@@ -29,7 +29,7 @@ public class 物块基础 {
     /// 自制物块的物品
     /// </summary>
     public class ExampleTileItem : ModItem {
-        public static string 参考 = "Kid: 物块属性讲解一: 基本物块 https://fs49.org/2022/08/26/kid%ef%bc%9a%e7%89%a9%e5%9d%97%e5%b1%9e%e6%80%a7%e8%ae%b2%e8%a7%a3%e4%b8%80%ef%bc%9a%e5%9f%ba%e6%9c%ac%e7%89%a9%e5%9d%97/";
+        public const string 参考 = "Kid: 物块属性讲解一: 基本物块 https://fs49.org/2022/08/26/kid%ef%bc%9a%e7%89%a9%e5%9d%97%e5%b1%9e%e6%80%a7%e8%ae%b2%e8%a7%a3%e4%b8%80%ef%bc%9a%e5%9f%ba%e6%9c%ac%e7%89%a9%e5%9d%97/";
         public override void SetDefaults() {
             //...
             Item.consumable = true;     //当然, 你想不消耗也行, 把consumable改成false就好了
@@ -42,8 +42,8 @@ public class 物块基础 {
     /// 自制物块
     /// </summary>
     public class ExampleTile : ModTile {
-        public static string 单例 = "每一种ModTile只会存在一个实例, 所有的这种物块统一由这个实例管理";
-        public static string 参考 = ExampleTileItem.参考 + "\nKid：物块属性讲解二：TileObjectData https://fs49.org/2022/10/16/kid%ef%bc%9a%e7%89%a9%e5%9d%97%e5%b1%9e%e6%80%a7%e8%ae%b2%e8%a7%a3%e4%ba%8c%ef%bc%9atileobjectdata/";
+        public const string 单例 = "每一种ModTile只会存在一个实例, 所有的这种物块统一由这个实例管理";
+        public const string 参考 = ExampleTileItem.参考 + "\nKid：物块属性讲解二：TileObjectData https://fs49.org/2022/10/16/kid%ef%bc%9a%e7%89%a9%e5%9d%97%e5%b1%9e%e6%80%a7%e8%ae%b2%e8%a7%a3%e4%ba%8c%ef%bc%9atileobjectdata/";
         public override void SetStaticDefaults() {
             Main.tileSolid[Type] = true;            //是不是实心的, 能不能被玩家, 弹幕等穿透, 默认false
             Main.tileSolidTop[Type] = true;         //顶端能否站人, 默认false

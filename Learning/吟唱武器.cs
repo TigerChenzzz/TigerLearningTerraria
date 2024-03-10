@@ -1,11 +1,11 @@
 ﻿namespace TigerLearning.Learning;
 
 public class 吟唱武器 {
-    public static string 介绍 = """
+    public const string 介绍 = """
         item.channel这个属性会让玩家在使用物品后进入channel状态, 可以用player.channel来检测
         """;
     public class ExampleChannelWeapon : ModItem {
-        public static string 参考 = "魔法导弹类武器 https://fs49.org/2022/01/22/%e9%ad%94%e6%b3%95%e5%af%bc%e5%bc%b9%e7%b1%bb%e6%ad%a6%e5%99%a8/";
+        public const string 参考 = "魔法导弹类武器 https://fs49.org/2022/01/22/%e9%ad%94%e6%b3%95%e5%af%bc%e5%bc%b9%e7%b1%bb%e6%ad%a6%e5%99%a8/";
         public override void SetDefaults() {
             //...
             Item.channel = true;
@@ -13,7 +13,7 @@ public class 吟唱武器 {
         }
     }
     public class ExampleChannelProjectile : ModProjectile {
-        public static string 参考 = "魔法导弹类武器 https://fs49.org/2022/01/22/%e9%ad%94%e6%b3%95%e5%af%bc%e5%bc%b9%e7%b1%bb%e6%ad%a6%e5%99%a8/";
+        public const string 参考 = "魔法导弹类武器 https://fs49.org/2022/01/22/%e9%ad%94%e6%b3%95%e5%af%bc%e5%bc%b9%e7%b1%bb%e6%ad%a6%e5%99%a8/";
         public override void AI() {
             #region 得到玩家, 若没有或已死亡等情况则直接让弹幕消失
             Player player = null;

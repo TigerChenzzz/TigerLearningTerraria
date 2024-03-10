@@ -2,7 +2,7 @@
 
 public class 创建Buff {
     public class ExampleBuff : ModBuff {
-        public static string 参考 = "自定义套装和Buff https://fs49.org/2020/03/12/%e8%87%aa%e5%ae%9a%e4%b9%89%e5%a5%97%e8%a3%85%e5%92%8cbuff/";
+        public const string 参考 = "自定义套装和Buff https://fs49.org/2020/03/12/%e8%87%aa%e5%ae%9a%e4%b9%89%e5%a5%97%e8%a3%85%e5%92%8cbuff/";
         public override void SetStaticDefaults() {
             Main.buffNoSave[Type] = true;   //是否不保存, 默认false, 即默认保存
             Main.debuff[Type] = false;      //判定这个buff算不算一个debuff, 如果设置为true会得到TR里对于debuff的限制, 比如无法取消

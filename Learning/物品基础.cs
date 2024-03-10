@@ -29,7 +29,7 @@ public class 物品基础 {
     /// 自制药水
     /// </summary>
     public class ExamplePotion : ModItem {
-        public static string 参考 = "自定义套装和Buff https://fs49.org/2020/03/12/%e8%87%aa%e5%ae%9a%e4%b9%89%e5%a5%97%e8%a3%85%e5%92%8cbuff/";
+        public const string 参考 = "自定义套装和Buff https://fs49.org/2020/03/12/%e8%87%aa%e5%ae%9a%e4%b9%89%e5%a5%97%e8%a3%85%e5%92%8cbuff/";
         public override void SetStaticDefaults() {
             CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 999;    //设置旅行模式研究所需物品
         }
@@ -84,7 +84,7 @@ public class 物品基础 {
     /// 自制双用途物品
     /// </summary>
     public class ExampleAltUseItem : ModItem {
-        public static string 参考 = "双用途武器 https://fs49.org/2022/07/12/%e5%8f%8c%e7%94%a8%e9%80%94%e6%ad%a6%e5%99%a8/";
+        public const string 参考 = "双用途武器 https://fs49.org/2022/07/12/%e5%8f%8c%e7%94%a8%e9%80%94%e6%ad%a6%e5%99%a8/";
         /// <summary>
         /// 返回true就能右键使用了
         /// 然后当你按下右键的时候TR就会把 player.altFunctionUse 这个属性设置为2, 也就是右键
@@ -104,7 +104,7 @@ public class 物品基础 {
             }
             return true;
         }
-        public static string 右键蓄力 = """
+        public const string 右键蓄力 = """
             泰拉瑞亚有一个很灵性的玩意, 那就是 player.channel 不支持右键使用
             那我们是不是可以放弃右键左键都可以做蓄力武器的存在了？当然不可能。
             目前来说, 我们有一个最简单的方法, 那就是用 player.controlUseTile 判右键的持续使用。
@@ -112,7 +112,7 @@ public class 物品基础 {
             """;
     }
     public class 添加特技 : ModItem {
-        public static string 参考 = "给物品加特技 https://fs49.org/2020/03/13/%e7%bb%99%e7%89%a9%e5%93%81%e5%8a%a0%e7%89%b9%e6%8a%80/";
+        public const string 参考 = "给物品加特技 https://fs49.org/2020/03/13/%e7%bb%99%e7%89%a9%e5%93%81%e5%8a%a0%e7%89%b9%e6%8a%80/";
         /// <summary>
         /// 会在近战武器挥动的时候被触发
         /// </summary>

@@ -4,8 +4,8 @@ namespace TigerLearning.Documents;
 public partial class Document {
     public class TagCompound_cls {
         public static TagCompound tagCompound;
-        public static string intro = "相当于字典";
-        public static string initialize = "可以像初始化字典一样初始化";
+        public const string intro = "相当于字典";
+        public const string initialize = "可以像初始化字典一样初始化";
         public static void ShowTagCompound() {
             tagCompound = new() {
                 {"tag1", 1 },

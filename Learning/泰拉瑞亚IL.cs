@@ -7,14 +7,14 @@ using System.Reflection;
 namespace TigerLearning.Learning;
 
 public class 泰拉瑞亚IL {
-    public static string sharpLab = """
+    public const string sharpLab = """
         https://sharplab.io/
         这里可以简单的查看一段代码的IL代码或者汇编代码,
         或者从IL代码反推源代码, 也可以直接运行一段代码
         """;
     public class 一个入门IL教程 {
-        public static string 参考 = "https://celestemod.saplonily.link/trans/il/";//是的, 这是蔚蓝的modder写的(
-        public static string 评估栈 = $$"""
+        public const string 参考 = "https://celestemod.saplonily.link/trans/il/";//是的, 这是蔚蓝的modder写的(
+        public const string 评估栈 = $$"""
         在 IL 代码中, 大量操作符本质上都是在操作一个叫做"评估栈"的东西
         又名 运算栈 / 运算堆栈 等
         比如如下 C# 方法: 
@@ -52,7 +52,7 @@ public class 泰拉瑞亚IL {
         减法的操作符为 sub, 它会弹出两个值, 将后弹出的值减去先弹出的值后将结果压入评估栈
             (相减的顺序刚好就是压入的顺序, 也即弹出的逆顺序, 这点会让我们在某些情况下手写 IL 的更符合直觉一点)
         """;
-        public static string 将不同类型的数据压栈 = $"""
+        public const string 将不同类型的数据压栈 = $"""
         ldc系列(load const, 压入常数)
             ldc.r8({nameof(OpCodes.Ldc_R8)}) 将参数中的double(Float64)字面量压入评估栈中
             ldc.r4({nameof(OpCodes.Ldc_R4)}) 则是float, ldc.i4({nameof(OpCodes.Ldc_I4)})指int(Int32)
@@ -60,7 +60,7 @@ public class 泰拉瑞亚IL {
                 虽然它本来是用来加载 int32 的, 但 jit 会知道我们想要干什么
             对于小一点的整数字面量 IL 还提供了一个 ldc.i4.s({nameof(OpCodes.Ldc_I4_S)}) 指令, 其参数为 Int8 即 byte 或 sbyte 类型
         """;
-        public static string 方法的调用 = $"""
+        public const string 方法的调用 = $"""
         在 IL 中有三种调用方法指令:
             操作符                                 参数          描述
             call({nameof(OpCodes.Call)})           方法token     根据方法的参数列表(包含 this, 如果其是成员方法时)逆顺序弹出对应数量参数并以此调用对应方法
@@ -77,31 +77,31 @@ public class 泰拉瑞亚IL {
         当我们不需要返回值时, 我们必须显式使用 pop 指令舍弃它, 防止它"污染"我们的评估栈
         方法的参数列表顺序和压栈顺序一致, 调用多参数方法也会显得很自然
         """;
-        public static string 对象实例化 = $"""
+        public const string 对象实例化 = $"""
         使用 newobj({nameof(OpCodes.Newobj)}) 操作符以实例化一个对象
             其参数为对应对象的一个构造器(MethodInfo)
             该指令执行后会将我们要的对象压入评估栈
         """;
-        public static string 成员方法的调用 = """
+        public const string 成员方法的调用 = """
         成员方法的调用与静态方法调用基本一致, 但是每次调用之前我们都必须记得将 this 的值作为第0个参数压入堆栈
         顺便, 记住这里的 this 是作为参数传递的, 每次调用都会被弹出评估栈, 所以在连续调用它的成员方法时记得将 this 再次压入
         通常我们会使用 callvirt 来调用成员方法, 一方面为了确保调用到了重写后的虚函数, 一方面为了尽可能早的检测出 this 为 null
         """;
-        public static string 局部变量 = $"""
+        public const string 局部变量 = $"""
         使用 stloc.0({nameof(OpCodes.Stloc_0)}) 以将栈顶弹出并存到0号位的局部变量上
         使用 ldloc.0({nameof(OpCodes.Ldloc_0)}) 以读取0号位的局部变量的值压入栈中(可重复压栈)
         使用 dup({nameof(OpCodes.Dup)}) 以弹出栈顶的元素, 然后压入两遍这个元素
         """;
-        public static string 属性的访问 = """
+        public const string 属性的访问 = """
         通常, 一个名为 MyProp 的属性的 getter 方法叫做 get_MyProp, setter 方法叫做 set_MyProp
         顺便, 这一对方法它们各自都有一个 special name 的特殊标记以便编译器知晓它们归属于一个属性
         """;
-        public static string 字段的访问 = $"""
+        public const string 字段的访问 = $"""
         对于静态字段的访问, 我们需要使用 ldsfld({nameof(OpCodes.Ldsfld)}) 操作符
             它接受此静态字段的 token (FieldInfo) 作为参数, 将对应的静态字段的值压入评估栈
         对于成员字段的访问则是用 ldfld({nameof(OpCodes.Ldfld)}), 它会额外弹出一个 this 元素
         """;
-        public static string 跳转指令 = $"""
+        public const string 跳转指令 = $"""
         在 IL 中, 为了方便 大于, 小于, 大于等于, 小于等于, 是否 null, 是否非0 等众多条件表达式的判断, IL 引入了大量有关的指令:
             指令                              描述
             beq({nameof(OpCodes.Beq)})        如果两个值相等，则将控制转移到目标指令
@@ -117,7 +117,7 @@ public class 泰拉瑞亚IL {
             brtrue({nameof(OpCodes.Brtrue)})  如果 value 不满足上条的条件，则将控制转移到目标指令
         可通过{nameof(ILContext.DefineLabel)}或{nameof(ILCursor.DefineLabel)}定义标记, {nameof(ILCursor.MarkLabel)}打上标记, 将此Label作为跳转的参数
         """;
-        public static string 短格式版本指令 = """
+        public const string 短格式版本指令 = """
         (.s 系指令)
         一些 IL 指令同时还有一个带 .s 后缀的版本, 这个我们一般叫它的 "短格式" 版本, 反之叫 "长格式" 版本
         通常类似这一对 IL 指令的区别就是 .s 版本的参数会短一点, 比如长格式版本的参数长度是 4 字节, 而短格式版本的参数长度可能就是 2 字节
@@ -139,7 +139,7 @@ public class 泰拉瑞亚IL {
             // 这里写IL
         }
     }
-    public static string 关于指针语句和标签的位置关系 = $"""
+    public const string 关于指针语句和标签的位置关系 = $"""
         指针: {nameof(ILCursor)}, 语句: {nameof(Instruction)}, 标签: {nameof(ILLabel)}
         指针的位置处于语句的缝隙中, 包括第一条语句前和最后一条语句后
             指针的上一句和下一句是挨在一起的

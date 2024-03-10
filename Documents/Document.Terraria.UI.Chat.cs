@@ -5,7 +5,7 @@ using Terraria.UI.Chat;
 namespace TigerLearning.Documents;
 public partial class Document {
     public class ChatManager_static_cls {
-        public static string intro = """
+        public const string intro = """
             可以用来绘制带有小图标(snippet)的字符串
             绘制Tooltip用的就是用的这个
             """;

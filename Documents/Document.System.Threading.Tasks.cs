@@ -6,10 +6,10 @@ namespace TigerLearning.Documents;
 public partial class Document {
     public class Task_cls {
         public static Task task;
-        public static string intro = """
+        public const string intro = """
             用于异步执行
             """;
-        public static string 参考 = """
+        public const string 参考 = """
             C#中关于Task（任务）的简单介绍 - CSDN: https://blog.csdn.net/qq_43565708/article/details/130244115
             Task 类 - Microsoft: https://learn.microsoft.com/zh-cn/dotnet/api/system.threading.tasks.task?view=net-8.0
             c# task三种创建方式的区别 - CSDN: https://blog.csdn.net/niechaoya/article/details/98038851

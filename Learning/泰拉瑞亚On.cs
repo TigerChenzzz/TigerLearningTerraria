@@ -10,7 +10,7 @@ namespace TigerLearning.Learning;
 
 public class 泰拉瑞亚On {
     public class 重写伤害计算 : ModSystem {
-        public static string 参考 = "On的功能与应用 https://fs49.org/2021/10/28/on%e7%9a%84%e5%8a%9f%e8%83%bd%e4%b8%8e%e5%ba%94%e7%94%a8/";
+        public const string 参考 = "On的功能与应用 https://fs49.org/2021/10/28/on%e7%9a%84%e5%8a%9f%e8%83%bd%e4%b8%8e%e5%ba%94%e7%94%a8/";
         //其实来说这种只改一处的东西最好放在IL中(但我暂时不会)
         public static bool ChangePlayerGetDamage = true;    //一般为写在配置里
         public static bool ChangeNPCGetDamage = true;
@@ -112,7 +112,7 @@ public class 泰拉瑞亚On {
         }
     }
     public class 动态icon : ModSystem {
-        public static string 参考 = "使用反射实现动态Icon https://fs49.org/2022/01/18/%e4%bd%bf%e7%94%a8%e5%8f%8d%e5%b0%84%e5%ae%9e%e7%8e%b0%e5%8a%a8%e6%80%81icon/";
+        public const string 参考 = "使用反射实现动态Icon https://fs49.org/2022/01/18/%e4%bd%bf%e7%94%a8%e5%8f%8d%e5%b0%84%e5%ae%9e%e7%8e%b0%e5%8a%a8%e6%80%81icon/";
         //其实来说也可以直接写在UpdateUI里面(虽说Hook到DrawMenu确实更加精确)
         //所此处更应该说是对C#反射和泰拉瑞亚UI的应用
         int timer, iconFrame;
@@ -170,7 +170,7 @@ public class 泰拉瑞亚On {
         }
     }
     public class 给任意方法上钩子 {
-        public static string 参考 = "通过 HookEndpointManager 动态挂钩子 https://fs49.org/2022/11/20/%e9%80%9a%e8%bf%87-hookendpointmanager-%e5%8a%a8%e6%80%81%e6%8c%82%e9%92%a9%e5%ad%90/";
+        public const string 参考 = "通过 HookEndpointManager 动态挂钩子 https://fs49.org/2022/11/20/%e9%80%9a%e8%bf%87-hookendpointmanager-%e5%8a%a8%e6%80%81%e6%8c%82%e9%92%a9%e5%ad%90/";
         public static Type 主角 = typeof(MonoModHooks);
         /// <summary>
         /// 代表原方法, 若为静态方法则没有<paramref name="self"/>

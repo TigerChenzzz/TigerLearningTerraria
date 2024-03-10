@@ -1,7 +1,7 @@
 ﻿namespace TigerLearning.Learning.额外研究;
 
 public class 原始字符串 {
-    public static string intro = """
+    public const string intro = """
         (原来其实也可以在字符串前用@来达到相似的效果, 但并不完善)
         原始字符串的特征为以3个双引号开始, 以3个双引号结束
         原始字符串中可以任意换行, 且开始和结束时的换行将被忽略
@@ -15,11 +15,11 @@ public class 原始字符串 {
         如果想在字符串中使用连续三个或更多的双引号,
             只需在原始字符串字面上的开始和结束处使用更多双引号包裹即可
         """;
-    public static string 启用原始字符串 = """
+    public const string 启用原始字符串 = """
         如果还没有启用这个特性(于C# 11(.Net 7)时添加)可能要在项目文件(.csproj)中
             将Project.PropertyGroup.LangVersion设置为latest
         """;
-    public static string 原始字符串的插值语法 = $$"""
+    public const string 原始字符串的插值语法 = $$"""
         在原始字符串前使用$来使用插值语法
         $的个数代表所需要的{}数: {{"qqq"}}
         """;

@@ -1,19 +1,19 @@
 ﻿namespace TigerLearning.Learning;
 
 public class 召唤武器 {
-    public static string 介绍 = """
+    public const string 介绍 = """
         召唤武器其实本质上就是物品带个智能一点的弹幕
         但是为了表示玩家的召唤物的状态, 我们还需要一个Buff以及一个自定义玩家属性来保证召唤物能正常工作以及消失
         """;
     public class ExampleMinionPlayer : ModPlayer {
-        public static string 参考 = "召唤武器实战：僚机(1.4再版) https://fs49.org/2022/09/28/%e5%8f%ac%e5%94%a4%e6%ad%a6%e5%99%a8%e5%ae%9e%e6%88%98%ef%bc%9a%e5%83%9a%e6%9c%ba%ef%bc%881-4%e5%86%8d%e7%89%88%ef%bc%89/";
+        public const string 参考 = "召唤武器实战：僚机(1.4再版) https://fs49.org/2022/09/28/%e5%8f%ac%e5%94%a4%e6%ad%a6%e5%99%a8%e5%ae%9e%e6%88%98%ef%bc%9a%e5%83%9a%e6%9c%ba%ef%bc%881-4%e5%86%8d%e7%89%88%ef%bc%89/";
         public bool exampleMinion;
         public override void ResetEffects() {
             exampleMinion = false;
         }
     }
     public class ExampleMinionWeapon : ModItem {
-        public static string 参考 = ExampleMinionPlayer.参考;
+        public const string 参考 = ExampleMinionPlayer.参考;
         public override void SetDefaults() {
             //...
             Item.DamageType = DamageClass.Summon;
@@ -23,7 +23,7 @@ public class 召唤武器 {
         }
     }
     public class ExampleMinionProj : ModProjectile {
-        public static string 参考 = ExampleMinionPlayer.参考;
+        public const string 参考 = ExampleMinionPlayer.参考;
         public override void SetDefaults() {
             Projectile.width = 16;
             Projectile.height = 16;
@@ -69,7 +69,7 @@ public class 召唤武器 {
         }
     }
     public class ExampleMinionBuff : ModBuff {
-        public static string 参考 = ExampleMinionPlayer.参考;
+        public const string 参考 = ExampleMinionPlayer.参考;
         public override void SetStaticDefaults() {
             Main.buffNoTimeDisplay[Type] = true;
         }

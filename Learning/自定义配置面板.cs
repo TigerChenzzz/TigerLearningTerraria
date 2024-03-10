@@ -10,7 +10,7 @@ using Terraria.UI.Chat;
 namespace TigerLearning.Learning;
 
 public class 自定义配置面板 {
-    public static string intro = """
+    public const string intro = """
         写一个继承自ConfigElement的类
         然后在想自定义的配置字段或属性上添加特性
         [CustomModConfigItem(typeof(类名))]即可使用

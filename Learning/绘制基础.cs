@@ -9,15 +9,15 @@ using TigerLearning.Documents;
 namespace TigerLearning.Learning;
 
 public class 绘制基础 {
-    public static string 参考 = "简单绘制 https://fs49.org/2021/12/22/%e7%ae%80%e5%8d%95%e7%bb%98%e5%88%b6/";
-    public static string 世界坐标与屏幕坐标 = """
+    public const string 参考 = "简单绘制 https://fs49.org/2021/12/22/%e7%ae%80%e5%8d%95%e7%bb%98%e5%88%b6/";
+    public const string 世界坐标与屏幕坐标 = """
         世界坐标是从整个世界的左上角算起的, 玩家和npc的位置都是基于世界坐标的
         但是屏幕坐标是基于屏幕左上角的
         那么绘制的时候, 我们需要把世界坐标转换成为屏幕坐标
         我们需要把世界坐标转换成屏幕坐标, 那么我们会用到Main.screenPosition(屏幕在世界的坐标)
         那么世界坐标转屏幕坐标就只用减去 Main.screenPosition就好了
         """;
-    public static string 绘制流程 = """
+    public const string 绘制流程 = """
         一定不要在没有SpriteBatch为参数的重写函数里写绘制函数!!!(初学者)
         (其他地方可以通过Main.spriteBatch获取)
         """;
@@ -99,7 +99,7 @@ public class 绘制基础 {
 
     }
     public class 拖尾弹幕 : ModProjectile {
-        public static string 参考 = "TeddyTerri：使用绘制来实现影子拖尾 https://fs49.org/2022/03/28/teddyterri%ef%bc%9a%e4%bd%bf%e7%94%a8%e7%bb%98%e5%88%b6%e6%9d%a5%e5%ae%9e%e7%8e%b0%e5%bd%b1%e5%ad%90%e6%8b%96%e5%b0%be/";
+        public const string 参考 = "TeddyTerri：使用绘制来实现影子拖尾 https://fs49.org/2022/03/28/teddyterri%ef%bc%9a%e4%bd%bf%e7%94%a8%e7%bb%98%e5%88%b6%e6%9d%a5%e5%ae%9e%e7%8e%b0%e5%bd%b1%e5%ad%90%e6%8b%96%e5%b0%be/";
         //此处为自定义储存方式, 同时还应储存旋转, spriteDirection等信息, 但此处没写, 因为只是演示, 也有官方的处理方法
         public Vector2[] oldPositions = new Vector2[15];    //顺便写下仿队列
         public int endIndex;

@@ -26,7 +26,7 @@ namespace TigerLearning.Documents;
 public partial class Document {
     public class Entity_cls {
         public static Entity entity;
-        public static string intro = "Player, Item, NPC的基类";
+        public const string intro = "Player, Item, NPC的基类";
         public static void ShowEntity() {
             #region params
             Vector2 position = default;
@@ -161,14 +161,14 @@ public partial class Document {
     }
     public class Item_cls {
         public static Item item;
-        public static string newItem_func = """
+        public const string newItem_func = """
             int NewItem(IEntitySource source, position, type, stack = 1, noBroadcast = false, ...)
             以在世界中新建一个物品, position可以为: Vector2 position; Vector2 pos, Vector2 randomBox, Vector2 pos, int Width, int Height;
             int X, int Y, int Width, int Height 当传入矩形范围时似乎会生成在正中间.
             不应该在多人模式的客户端被调用, 若想要在客户端的代码中生成, 可以用 player.QuickSpawnItem(source, item, stack = 1),
             它会处理多人模式的同步需要.     返回生成的物品在Main.item中的序号
             """;
-        public static string constructor = """
+        public const string constructor = """
             new Item()什么都不会做
             item = new Item(itemId)会设置item的各种基本信息(Item基本的SetDefaults)
             会设置其ModItem, 调用ModItem的AutoDefaults和SetDefaults, 然后是

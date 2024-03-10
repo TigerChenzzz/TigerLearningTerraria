@@ -7,7 +7,7 @@ namespace TigerLearning.Learning;
 
 public class UI制作 {
     public class ExampleUI : UIState {
-        public static string 参考 = "UI的制作 https://fs49.org/2020/03/27/ui%e7%9a%84%e5%88%b6%e4%bd%9c/";
+        public const string 参考 = "UI的制作 https://fs49.org/2020/03/27/ui%e7%9a%84%e5%88%b6%e4%bd%9c/";
         public bool visible;
         public override void OnInitialize() {
             #region 实例化一个面板，并且将其注册到UIState
@@ -60,7 +60,7 @@ public class UI制作 {
         }
     }
     public class ExampleUISystem : ModSystem {
-        public static string 参考 = ExampleUI.参考;
+        public const string 参考 = ExampleUI.参考;
         public static ExampleUI exampleUI;
         public static UserInterface exampleUserInterface;     //UserInterface是用来托管UI事件的一个类
         public override void Load() {
@@ -90,14 +90,14 @@ public class UI制作 {
         }
     }
     public class ExampleUIPlayer : ModPlayer {
-        public static string 参考 = ExampleUI.参考;
+        public const string 参考 = ExampleUI.参考;
         public override void OnEnterWorld() {
             ExampleUISystem.exampleUI.visible = true;
         }
     }
 
     public class 进度条 : UIElement {
-        public static string 参考 = "UI部件示例：进度条 https://fs49.org/2020/03/31/ui%e9%83%a8%e4%bb%b6%e7%a4%ba%e4%be%8b%ef%bc%9a%e8%bf%9b%e5%ba%a6%e6%9d%a1/";
+        public const string 参考 = "UI部件示例：进度条 https://fs49.org/2020/03/31/ui%e9%83%a8%e4%bb%b6%e7%a4%ba%e4%be%8b%ef%bc%9a%e8%bf%9b%e5%ba%a6%e6%9d%a1/";
         private float _maxValue;
         private float _value;
         public float MaxValue {

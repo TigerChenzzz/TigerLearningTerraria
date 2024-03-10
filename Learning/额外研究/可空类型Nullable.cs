@@ -2,10 +2,10 @@
 
 public class 可空类型Nullable {
 #nullable enable
-    public static string intro = """
+    public const string intro = """
         关于各种 ? 的事情
         """;
-    public static string 可为空的值类型 = """
+    public const string 可为空的值类型 = """
         给值类型后加上?变为可为空的值类型(int? i = null;)(实际上会变为结构体Nullable<int>)
         此类型基本可以正常的当作原类型使用, 只是有空值时计算结果一般为空(2 + (int?)null -> null)
         特别的, 做大小于(包括不大于和不小于)运算时, 若有空值则必为假(此时小于等于不再与小于或者等于等效)
@@ -31,7 +31,7 @@ public class 可空类型Nullable {
         i = (int)b; // -> i = 3
         //i = (int)a; // -> 报错
     }
-    public static string 空条件运算符 = """
+    public const string 空条件运算符 = """
         a?.b 以安全的使用一个实例a的成员b, 当此实例为空时, 不会调用此成员, 而且返回值为空(若原来为值类型, 则会变为可为空的值类型)
             也叫做null传播
         a?[i] a为空时返回空, 否则按正常取索引处理(超界还是会报错)
@@ -61,7 +61,7 @@ public class 可空类型Nullable {
             }
         }
     }
-    public static string 可为空的引用类型 = """
+    public const string 可为空的引用类型 = """
         启用可为空的引用类型:
             单文件内可以使用 #nullable enable 以启用, disable以禁用, restore以还原默认设置
             项目内可以设置项目文件中Project.PropertyGroup.Nullable为enable以启用

@@ -9,7 +9,7 @@ namespace TigerLearning.Learning;
 
 public class 添加NPC {
     public class ExampleNPC : ModNPC {
-        public static string 参考 = "从零开始的NPC编写 https://fs49.org/2022/01/18/%e4%bb%8e%e9%9b%b6%e5%bc%80%e5%a7%8b%e7%9a%84npc%e7%bc%96%e5%86%99/\n" + 城镇NPC.参考;
+        public const string 参考 = "从零开始的NPC编写 https://fs49.org/2022/01/18/%e4%bb%8e%e9%9b%b6%e5%bc%80%e5%a7%8b%e7%9a%84npc%e7%bc%96%e5%86%99/\n" + 城镇NPC.参考;
         public override void SetStaticDefaults() {
             //名字的设置位于Mods.[ModName].NPCs.[NPCName].DisplayName
             Main.npcFrameCount[Type] = 3;   //附带的贴图有几帧(纵向排列)
@@ -173,8 +173,8 @@ public class 添加NPC {
 
     [AutoloadHead]
     public class 城镇NPC : ModNPC {
-        public static string 参考 = "创建一个基础城镇NPC https://fs49.org/2023/01/20/%e5%88%9b%e5%bb%ba%e4%b8%80%e4%b8%aa%e5%9f%ba%e7%a1%80%e5%9f%8e%e9%95%87npc-1-4-ver/";
-        public static string 分类 = """
+        public const string 参考 = "创建一个基础城镇NPC https://fs49.org/2023/01/20/%e5%88%9b%e5%bb%ba%e4%b8%80%e4%b8%aa%e5%9f%ba%e7%a1%80%e5%9f%8e%e9%95%87npc-1-4-ver/";
+        public const string 分类 = """
             按入住方式: 常驻型，旅商型，宠物和其他型
                 旅商型: 参见 Example Mod 的Example Traveling Merchant
                 其他型: 比如原版的地牢老人和骷髅商人
@@ -189,7 +189,7 @@ public class 添加NPC {
                 近战型: 基本特征为四帧攻击动画，不发射弹幕且持有武器
                 不攻击型: 所有的城镇宠物都属于这个类型，没有攻击手段，遇见敌怪时只会逃跑
             """;
-        public static string 贴图 = """
+        public const string 贴图 = """
             除了要准备一份[npcName].png的帧图外, 还要准备一份[npcName]_Head.png
             表示NPC在小地图的图标
             """;

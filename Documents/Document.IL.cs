@@ -9,7 +9,7 @@ public partial class Document {
     #region namespace MonoMod.Cil
     public class ILContext_cls {
         public static ILContext ilContext;
-        public static string intro = """
+        public const string intro = """
             表示一个方法的 IL 上下文
             """;
         public static void ShowILContext() {
@@ -26,7 +26,7 @@ public partial class Document {
     }
     public class ILCursor_cls {
         public static ILCursor ilCursor;
-        public static string intro = """
+        public const string intro = """
             指示il的位置, 可以理解为处于两个语句之间
             """;
         public static void ShowILCursor() {
@@ -226,7 +226,7 @@ public partial class Document {
     }
     public class ILLabel_cls {
         public static ILLabel label;
-        public static string intro = """
+        public const string intro = """
             表示一个标签, 如goto语句就是显示使用的标签
             if-else, while, for, switch等条件控制语句也都会使用标签控制
             """;
@@ -251,10 +251,10 @@ public partial class Document {
     #endregion
     #region namespace Mono.Cecil.Cil
     public class OpCodes_static_cls {
-        public static string tips = """
+        public const string tips = """
             在IL中压栈通常以ld开头, 出栈则以st开头
             """;
-        public static string reference = """
+        public const string reference = """
             C# IL 指令集 - 云城 - 博客园: https://www.cnblogs.com/yuncheng/p/3437419.html
             """;
         public static void ShowOpCodes() {
@@ -378,7 +378,7 @@ public partial class Document {
     }
     public class Instruction_cls {
         public static Instruction instruction;
-        public static string intro = """
+        public const string intro = """
             代表一条语句
             """;
         public static void ShowInstruction() {

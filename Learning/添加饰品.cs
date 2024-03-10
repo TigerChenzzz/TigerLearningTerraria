@@ -4,8 +4,8 @@ namespace TigerLearning.Learning;
 
 public class 添加饰品 {
     public class ExampleAccessories : ModItem {
-        public static string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
-        public static string 说明 = "需额外准备与类名同名且在对应命名空间下的图片(.png)文件";
+        public const string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
+        public const string 说明 = "需额外准备与类名同名且在对应命名空间下的图片(.png)文件";
 
         public override void SetDefaults() {
             Item.width = 16;
@@ -59,8 +59,8 @@ public class 添加饰品 {
     }
     [AutoloadEquip(EquipType.Wings)]
     public class ExampleWings : ModItem {
-        public static string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
-        public static string 说明 = "需额外准备名字为 [类名]_Wings 且在对应命名空间下的图片(.png)文件(四帧)";
+        public const string 参考 = "自定义饰品和翅膀 https://fs49.org/2020/03/11/%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a5%b0%e5%93%81%e5%92%8c%e7%bf%85%e8%86%80/";
+        public const string 说明 = "需额外准备名字为 [类名]_Wings 且在对应命名空间下的图片(.png)文件(四帧)";
         public override void SetDefaults() {
             Item.width = 22;
             Item.height = 20;
@@ -170,7 +170,7 @@ public class 添加饰品 {
         player.AddBuff(BuffID.Poisoned, 30);    //添加持续30帧的中毒debuff, 若在UpdateAccessory中直接写会一直存在
     }
     public class 信息饰品 {
-        public static string intro = """
+        public const string intro = """
             如手机等可以在右侧地图下面展示一些信息的饰品, 也是可以自己造的
             """;
         public static InfoDisplay infoDisplay;
@@ -207,10 +207,10 @@ public class 添加饰品 {
             }
         }
         public class ExampleInfoDisplay : InfoDisplay {
-            public static string tip = """
+            public const string tip = """
                 需要在同目录下准备"<类名>.png"(比如此处就是"ExampleInfoDisplay.png")表示其小图标(14x14?)
                 """;
-            public static string localization = $"""
+            public const string localization = $"""
                 需要在本地化文件中设置Mods.[Mod类名].InfoDisplays.[此类名].DisplayName的值
                 或者重写{nameof(DisplayName)}以设置获取显示名的获取
                 """;

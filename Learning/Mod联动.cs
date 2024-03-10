@@ -7,7 +7,7 @@ using WingSlotExtra;
 namespace TigerLearning.Learning;
 
 public class Mod联动 {
-    public static string 依赖关系 = """
+    public const string 依赖关系 = """
         在build.txt中modReferences中填的mod名表示强{依赖/引用}, weakReferences表示弱{依赖/引用}
         在强依赖时, 依赖的模组肯定会先于本模组被加载, 否则可能在之后加载或者根本不会加载
         若要指定最低版本, 则在build.txt的references的mod名后加@[版本号], 如 modReferences = ExampleMod@1.0.0.0
@@ -31,7 +31,7 @@ public class Mod联动 {
     }
     public static class 直接使用其他mod的类 {
         public static class 强引用 {
-            public static string intro = """
+            public const string intro = """
                 在build.txt中的modReferences中填上需要强引用的mod名(后加 @[版本号] 可以指定最低版本)
                 将引用的mod的dll添加到项目的程序集依赖, 如果有源码可以直接将其添加到项目的项目依赖
                 然后就可以直接使用对应mod的公开的类了
@@ -60,7 +60,7 @@ public class Mod联动 {
 
         [JITWhenModsEnabled("WingSlotExtra")]//TBT
         public static class 弱引用 {
-            public static string intro = """
+            public const string intro = """
                 在build.txt中的weakReferences中填上需要弱引用的mod名(后加 @[版本号] 可以指定最低版本)
                 将引用的mod的dll添加到项目的程序集依赖, 如果有源码可以直接将其添加到项目的项目依赖
                 然后就可以获得代码补全了

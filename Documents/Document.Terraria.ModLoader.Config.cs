@@ -10,7 +10,7 @@ namespace TigerLearning.Documents;
 
 public partial class Document {
     public class ItemDefinition_cls {
-        public static string intro = "在Config中方便的引用一个物品, 或者用来做itemId与mod name和item name的转换";
+        public const string intro = "在Config中方便的引用一个物品, 或者用来做itemId与mod name和item name的转换";
         public static void ShowItemDefinition() {
             #region params
             string modName = null, itemName = null, key = null;
@@ -47,7 +47,7 @@ public partial class Document {
         }
     }
     public class ModConfig_cls {
-        public static string intro = $"""
+        public const string intro = $"""
             继承{nameof(ModConfig)}的类会作为一个配置文件被加载
             里面的公开且实例的字段和属性会被序列化保存, 初始化后会被反序列化设置
             而私有的及内部的字段或属性则不会因反序列化被设置, 也不会因为序列化而被保存
@@ -120,7 +120,7 @@ public partial class Document {
                 Two,
                 Three,
             }
-            public static string CustomEnumLocalization = $"""
+            public const string CustomEnumLocalization = $"""
                 对于自定义枚举类型, 需要在本地化文本中给出每个枚举值的label
                 具体需要:
                 Mods.{nameof(TigerLearning)}.Configs.{nameof(ExampleCustomEnum)}.Label

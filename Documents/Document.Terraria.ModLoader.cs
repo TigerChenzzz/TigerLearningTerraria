@@ -5,9 +5,9 @@ namespace TigerLearning.Documents;
 public partial class Document {
     public class Mod_cls {
         public static Mod mod;
-        public static string intro = "一个mod需要有一个且仅一个继承自此类的类";
-        public static string postSetupContent_func = "重写PostSetupContent()以在PostSetup阶段做一些事情(此时各种数组的大小已经设置好了)";
-        public static string unload_func = "重写Unload()以在卸载此模组时做一些事情";
+        public const string intro = "一个mod需要有一个且仅一个继承自此类的类";
+        public const string postSetupContent_func = "重写PostSetupContent()以在PostSetup阶段做一些事情(此时各种数组的大小已经设置好了)";
+        public const string unload_func = "重写Unload()以在卸载此模组时做一些事情";
     }
     public class ModType_cls {
         public static ModType modType;
@@ -41,7 +41,7 @@ public partial class Document {
         /// <see cref="ModType_cls"/>
         /// </summary>
         public static ModType 基类;
-        public static string intro = "继承自此类以添加一种物品";
+        public const string intro = "继承自此类以添加一种物品";
         public class DocumentModItem : ModItem {
             public void ShowModItem() {
                 #region params
@@ -71,14 +71,14 @@ public partial class Document {
     }
     public class ModTile_cls {
         public static ModTile modTile;
-        public static string intro = "继承自此类以添加一类物块";
-        public static string setStaticDefaults_func = "重写SetStaticDefaults()以在初始化完成后做一些事情";
-        public static string addMapEntry_func = "在SetStaticDefaults()中使用AddMapEntry(Color, name = null)以在地图中添加显示, name可使用Language.GetText(path)";
-        public static string drop_func = "重写bool Drop(i, j)以改写其掉落, 目前仅对1x1物块生效, 返回true以掉落默认掉落的物品, 可以使用Item.NewItem(...)以手动添加掉落";
-        public static string killMultiTile_func = "重写KillMultiTile(i, j, frameX, frameY)以定义在多个联和的块被摧毁时干的事情(只执行一次, 可用以生成掉落物)";
-        public static string numDust_func = "重写NumDust(i, j, fail, ref num)以改写敲物块时发出的粒子数";
-        public static string createDust_func = "重写bool CreateDust(i, j, ref type)以修改在敲击物块时发出粒子的类型, 返回false使不发出默认粒子";
-        public static string rightClick_func = "重写bool RightClick(int i, int j)以设置是否可以右键点击(?)";
+        public const string intro = "继承自此类以添加一类物块";
+        public const string setStaticDefaults_func = "重写SetStaticDefaults()以在初始化完成后做一些事情";
+        public const string addMapEntry_func = "在SetStaticDefaults()中使用AddMapEntry(Color, name = null)以在地图中添加显示, name可使用Language.GetText(path)";
+        public const string drop_func = "重写bool Drop(i, j)以改写其掉落, 目前仅对1x1物块生效, 返回true以掉落默认掉落的物品, 可以使用Item.NewItem(...)以手动添加掉落";
+        public const string killMultiTile_func = "重写KillMultiTile(i, j, frameX, frameY)以定义在多个联和的块被摧毁时干的事情(只执行一次, 可用以生成掉落物)";
+        public const string numDust_func = "重写NumDust(i, j, fail, ref num)以改写敲物块时发出的粒子数";
+        public const string createDust_func = "重写bool CreateDust(i, j, ref type)以修改在敲击物块时发出粒子的类型, 返回false使不发出默认粒子";
+        public const string rightClick_func = "重写bool RightClick(int i, int j)以设置是否可以右键点击(?)";
         public static void ShowModTile() {
             Show(modTile.MineResist);
             Show(modTile.MinPick);
@@ -86,7 +86,7 @@ public partial class Document {
     }
     public class ModBlockType_cls {
         public static ModBlockType modBlockType;
-        public static string intro = "ModTile 和 ModWall的基类";
+        public const string intro = "ModTile 和 ModWall的基类";
         public static void ShowModBlockType() {
             Show(modBlockType.DustType);        //物块被击打时发出的粒子
 #if Terraria143
@@ -96,7 +96,7 @@ public partial class Document {
     }
     public class ModSystem_cls {
         public static ModSystem modSystem;
-        public static string intro = "额外的系统";
+        public const string intro = "额外的系统";
         public class ExampleModSystem : ModSystem {
             /// <summary>
             /// <br/>重写以在加载阶段做一些事情
@@ -135,10 +135,10 @@ public partial class Document {
     }
     public class ModPlayer_cls {
         public static ModPlayer modPlayer;
-        public static string intro = "继承自此mod以改写人物";
-        public static string kill_func = "重写Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)以在死亡时做一些事情";
-        public static string save_func = "重写TagCompound Save()以保存数据";
-        public static string load_func = "重写Load(TagCompound tag)以在加载时做一些事并获取保存的数据";
+        public const string intro = "继承自此mod以改写人物";
+        public const string kill_func = "重写Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)以在死亡时做一些事情";
+        public const string save_func = "重写TagCompound Save()以保存数据";
+        public const string load_func = "重写Load(TagCompound tag)以在加载时做一些事并获取保存的数据";
 
     }
     public class GlobalType_cls {
@@ -147,7 +147,7 @@ public partial class Document {
 #else
         public static GlobalType<GlobalItem> globalType;
 #endif
-        public static string appliesToEntity_func = """
+        public const string appliesToEntity_func = """
             重写AppliesToEntity(entity, bool lateInstiation)来判断是否给对应物品附加上此类
             lateInstiation表示是否在SetDefaults之后检查, 若需要SetDefaults做出更改, 则需只在lateInstiation为真时返回真
             """;
@@ -159,17 +159,17 @@ public partial class Document {
 #else
         public static GlobalType<GlobalItem> superType;
 #endif
-        public static string intro = "用以魔改所有物品(包括原版)";
-        public static string load_func = "重写Load()以在加载阶段做一些事情";
-        public static string setDefaults_func = "重写SetDefaults(item)以在原物品SetDefaults时做一些事情";
-        public static string saveData_func = "重写SaveData(item, tagCompound)以保存数据";
-        public static string loadData_func = "重写LoadData(item, tagCompound)以加载数据";
-        public static string canAutoReuseItem_func = "重写bool? CanAutoReuseItem(item, player)以改写是否可自动连用, 不做改动为返回null";
-        public static string consumeItem_func = "重写bool ConsumeItem(item, player)以改写在消耗一个消耗品时是否真的消耗掉它, 若没有消耗, 则不会调用OnConsumeItem, 默认返回true";
-        public static string canBeConsumedAsAmmo_func = "重写bool CanBeConsumedAsAmmo(ammo, weapon, player)以改写在消耗弹药时是否真的消耗掉它, 默认返回true";
-        public static string modifyTooltip_func = "重写ModifyTooltips(item, List<TooltipLine> tooltips)通过修改tooltips可修改介绍文本, 例tooltips.Add(new(Mod, \"Rare\", \"Rare: \" + item.rare))";
-        public static string grabRange_func = "重写GrabRange(item, player, ref int grabRange)以改写其拾取距离";
-        public static string itemSpace_func = "重写bool ItemSpace(item, player)以判断是否忽略其他条件使玩家吸引物品";
+        public const string intro = "用以魔改所有物品(包括原版)";
+        public const string load_func = "重写Load()以在加载阶段做一些事情";
+        public const string setDefaults_func = "重写SetDefaults(item)以在原物品SetDefaults时做一些事情";
+        public const string saveData_func = "重写SaveData(item, tagCompound)以保存数据";
+        public const string loadData_func = "重写LoadData(item, tagCompound)以加载数据";
+        public const string canAutoReuseItem_func = "重写bool? CanAutoReuseItem(item, player)以改写是否可自动连用, 不做改动为返回null";
+        public const string consumeItem_func = "重写bool ConsumeItem(item, player)以改写在消耗一个消耗品时是否真的消耗掉它, 若没有消耗, 则不会调用OnConsumeItem, 默认返回true";
+        public const string canBeConsumedAsAmmo_func = "重写bool CanBeConsumedAsAmmo(ammo, weapon, player)以改写在消耗弹药时是否真的消耗掉它, 默认返回true";
+        public const string modifyTooltip_func = "重写ModifyTooltips(item, List<TooltipLine> tooltips)通过修改tooltips可修改介绍文本, 例tooltips.Add(new(Mod, \"Rare\", \"Rare: \" + item.rare))";
+        public const string grabRange_func = "重写GrabRange(item, player, ref int grabRange)以改写其拾取距离";
+        public const string itemSpace_func = "重写bool ItemSpace(item, player)以判断是否忽略其他条件使玩家吸引物品";
         public static void ShowGlobalItem() {
             #region params
             Item item = new();
