@@ -81,7 +81,7 @@ public class UI制作 {
                 {
                     if (exampleUI.visible)
                     {
-                        exampleUI.Draw(Main.spriteBatch);
+                        exampleUserInterface.Draw(Main.spriteBatch, Main.gameTimeCache);
                     }
                     return true;
                 }, InterfaceScaleType.UI);

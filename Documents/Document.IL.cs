@@ -14,6 +14,7 @@ public partial class Document {
             """;
         public static void ShowILContext() {
             #region params
+
             MethodBase method = default;
             Instruction instruction = default;
             #endregion
@@ -22,6 +23,8 @@ public partial class Document {
             Show(ilContext.Labels);         //此方法中的所有标签
             ilContext.GetIncomingLabels(instruction);   //获得此语句前的标签(实际上是搜索ilContext.Labels以获得所有Target是此语句的标签)
             ilContext.ToString();   //获得此方法的方法名以及主体IL代码
+            Show(ilContext.Body);
+            Show(ilContext.Body.Variables);
         }
     }
     public class ILCursor_cls {
@@ -89,6 +92,7 @@ public partial class Document {
             ilCursor.TryGotoNext(MoveType.After, ILPatternMatchingExt.MatchAdd); //跳到下一条操作符是加的语句前的标签后面, 若没找到则返回false且不动
             //向下寻找两条语句, 其中第一条是 add, 第二条是 sub, 然后跳到第一条之前, 若使用MoveType.After则是第二条之后
             ilCursor.TryGotoNext(ILPatternMatchingExt.MatchAdd, ILPatternMatchingExt.MatchSub); //跳到下一条操作符是加的语句的前面, 若没找到则返回false且不懂
+            ilCursor.TryGotoNext(i => i.MatchLdcI4(1), i => i.MatchLdcI4(1), i => i.MatchAdd());
 
             ilCursor.GotoNext(i => i.MatchLdcI4(10));    //基本同TryGotoNext, 只是TryGotoNext返回false时会报错; 返回自身(this)
             ilCursor.TryGotoPrev(); //除了为向上搜索外都与TryGotoNext一致
@@ -382,6 +386,9 @@ public partial class Document {
             代表一条语句
             """;
         public static void ShowInstruction() {
+            ILContext il = default;
+            var instrs = il.Instrs; 
+            Instruction instr = instrs[0];  
             Show(instruction.Next);     //下一条语句
             Show(instruction.Previous); //上一条语句
             Show(instruction.OpCode);   //操作代码

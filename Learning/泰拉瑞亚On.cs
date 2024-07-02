@@ -2,6 +2,7 @@
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using ReLogic.Content;
+using System;
 using System.Reflection;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
@@ -229,13 +230,19 @@ public class 泰拉瑞亚On {
             #endregion
             #region IL钩子
             ilHook = new(method, Manipulate);
-            ilHook = new(method, Manipulate, applyByDefault);   //是否立即挂上去(默认false)
+            ilHook = new(method, Manipulate, applyByDefault);   //是否立即挂上去(默认true)
             ilHook = new(method, Manipulate, detourConfig);     //配置挂钩子的顺序, 优先级等, 默认空
             ilHook = new(method, Manipulate, detourConfig, applyByDefault);//以上两种一起
             Show(ilHook.Config);    //获得配置, 若无则是空
             ilHook.Apply();         //挂上此钩子
             ilHook.Undo();          //卸载此钩子
             Show(ilHook.IsApplied); //是否挂上了钩子
+            if(ilHook.IsApplied) {  // 判断这个钩子有没有挂上
+                ilHook.Undo();      // 卸载钩子
+            }
+            else {
+                ilHook.Apply();     // 挂上钩子
+            }
             #endregion
         }
     }

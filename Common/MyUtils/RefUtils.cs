@@ -1,4 +1,5 @@
-﻿using TigerLearning.Common.Configs;
+﻿using Microsoft.Xna.Framework.Graphics;
+using TigerLearning.Common.Configs;
 
 namespace TigerLearning.Common.MyUtils;
 

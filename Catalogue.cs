@@ -21,6 +21,7 @@ public static class Catalogue {
     public static 添加坐骑 添加坐骑;
     public static 物块基础 物块基础;
     public static 添加NPC 添加NPC;
+    public static 键位绑定 键位绑定;
 
     public static 物品掉落 物品掉落;
     public static 绘制基础 绘制基础;

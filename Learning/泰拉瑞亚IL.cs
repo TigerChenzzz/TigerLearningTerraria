@@ -237,7 +237,15 @@ public class 泰拉瑞亚IL {
             i => i.MatchLdcI4(1),
             ILPatternMatchingExt.MatchAdd,
             ILPatternMatchingExt.MatchStloc0);
+        cursor.EmitLdloc0();
+        cursor.EmitLdcI4(3);
+        cursor.EmitAdd();
+        cursor.EmitStloc0();
         cursor.EmitBr(il.Instrs[cursor.Index + 4]);
+        // 当然以上5句也可以简写为以下3句, 只是被修改的方法的性能会下降一些罢了
+        // cursor.EmitLdloc0();
+        // cursor.EmitDelegate((int i) => i + 3);
+        // cursor.EmitStloc0();
         #endregion
         #region 不使用ILCursor
         // 不是很推荐这种方式, 毕竟 ILCursor 已经包装好了
