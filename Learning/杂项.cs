@@ -42,6 +42,9 @@ public class 杂项 {
         CombatText.NewText(location, Color.White, "string");
         //PopupText.NewText()       //重铸时的弹出语使用此方法
         #endregion
+        #region 计时器
+        Show(Main.GameUpdateCount);
+        #endregion
         #region 未分类(暂无)
         #endregion
     }

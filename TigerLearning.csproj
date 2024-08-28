@@ -1,18 +1,18 @@
 ﻿
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\tModLoader.targets" />
   <PropertyGroup>
     <AssemblyName>TigerLearning</AssemblyName>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnablePathGenerator>false</EnablePathGenerator>
+    <EnableModBuilder>true</EnableModBuilder>
+    <DebugMod>None</DebugMod>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Krafs.Publicizer" Version="2.2.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <Publicize Include="tModLoader" IncludeVirtualMembers="true" />
+    <Reference Include="lib\*.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="lib\*.dll" />
+    <PackageReference Include="Solaestas.tModLoader.ModBuilder" Version="1.6.1" />
   </ItemGroup>
 </Project>

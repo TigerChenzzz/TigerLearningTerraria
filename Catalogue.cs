@@ -29,6 +29,7 @@ public static class Catalogue {
 
     public static UI制作 UI制作;
     public static 自定义配置面板 自定义配置面板;
+    public static 高级绘制 高级绘制;
 
     public static 反射 反射;
     public static 特性 特性;
