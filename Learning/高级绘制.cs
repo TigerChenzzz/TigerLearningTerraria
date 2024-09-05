@@ -13,6 +13,7 @@ public class 高级绘制 {
         public const string 介绍 = $"""
             Shader 即 着色器
             泰拉瑞亚中的 {nameof(Effect)} 即 Shader, 使用 .fx 文件 (着色器脚本文件) 编写, 使用 HLSL 脚本
+            然后需要使用专门的编译器编译为 .xnb 文件, 这样才能被读取到
             内置函数:       https://learn.microsoft.com/zh-cn/windows/win32/direct3dhlsl/dx-graphics-hlsl-intrinsic-functions
             内置函数(英文): https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-intrinsic-functions
             """;
