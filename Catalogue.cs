@@ -3,7 +3,7 @@ using TigerLearning.Learning.额外研究;
 
 namespace TigerLearning;
 
-public static class Catalogue {
+public class Catalogue {
     public static 杂项 杂项;
 
     public static 物品基础 物品基础;
@@ -15,7 +15,7 @@ public static class Catalogue {
     public static 输出信息 输出信息;
 
     public static 存取数据 存取数据;
-    public static 添加设置 添加设置;
+    public static 添加模组配置 添加模组配置;
     public static 吟唱武器 吟唱武器;
     public static 召唤武器 召唤武器;
     public static 添加坐骑 添加坐骑;
@@ -40,11 +40,14 @@ public static class Catalogue {
     public static 多人同步 多人同步;
 
     #region 额外研究
+
+    #region TML 无关
     public static 可空类型Nullable 可空类型Nullable;
     public static 原始字符串 原始字符串;
     public static 传参用特性 传参用特性;
     public static 非托管类型 非托管类型;
     public static when关键字 when关键字;
     public static 额外研究杂项 额外研究杂项;
+    #endregion
     #endregion
 }

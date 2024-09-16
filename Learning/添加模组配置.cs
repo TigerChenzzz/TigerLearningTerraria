@@ -3,7 +3,7 @@ using TigerLearning.Documents;
 
 namespace TigerLearning.Learning;
 
-public class 添加设置 {
+public class 添加模组配置 {
     public static ModConfig modConfig;  //当然大部分情况下你需要继承这个而不是直接用这个
     public static void ShowModConfig() {
         Show(typeof(ConfigManager));    //这里基本上管理着ModConfig的各种功能(如存储)

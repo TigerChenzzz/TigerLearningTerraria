@@ -60,11 +60,16 @@ public class Mod联动 {
 
         [JITWhenModsEnabled("WingSlotExtra")]//TBT
         public static class 弱引用 {
-            public const string intro = """
+            public const string intro = $"""
                 在build.txt中的weakReferences中填上需要弱引用的mod名(后加 @[版本号] 可以指定最低版本)
                 将引用的mod的dll添加到项目的程序集依赖, 如果有源码可以直接将其添加到项目的项目依赖
                 然后就可以获得代码补全了
                 需要在用到对方的类的类打上[JITWhenModsEnabled(ModNames)]
+                如果是继承自 {nameof(ILoadable)} (如 {nameof(ModSystem)} 等) 或
+                    继承自对方的类 (TBT), 那么则需要 {nameof(ExtendsFromModAttribute)}
+                    即 [ExtendsFromMod(ModNames)]
+                注意不要直接在其他类中使用打上了这些特性的类的成员, 因为这样仍然会加载它们,
+                    并在对方没有加载时报错, 使用前需要判断对方有没有加载 ({nameof(ModLoader.HasMod)})
                 """;
             public static void ShowModReferences() {
                 #region 以联动额外翅膀栏为例

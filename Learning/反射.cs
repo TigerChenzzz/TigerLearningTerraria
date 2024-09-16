@@ -1,4 +1,6 @@
-﻿using MonoMod.Utils;
+﻿using Mono.Cecil;
+using MonoMod.RuntimeDetour;
+using MonoMod.Utils;
 using System.Reflection;
 
 namespace TigerLearning.Learning;
@@ -162,4 +164,21 @@ public class 反射 {
         constructorInfo.CreateDelegate<Func<Main>>();
         #endregion
     }
+    #region 额外研究
+    /// <summary>
+    /// <br/>从 <see cref="MethodBase"/> (包括 <see cref="MethodInfo"/>) 中获取 <see cref="MethodDefinition"/> 的方法
+    /// <br/>见 <see cref="DynamicMethodDefinition"/> 的私有方法 LoadFromMethod(...)
+    /// <br/>(
+    /// <br/><see cref="ILHook.Apply"/>
+    /// <br/><see cref="DetourManager.ManagedDetourState.AddILHook(DetourManager.SingleILHookState, bool)"/>
+    /// <br/><see cref="DetourManager.ManagedDetourState"/> 的私有方法 UpdateEndOfChain()
+    /// <br/><see cref="DynamicMethodDefinition"/> 的构造方法
+    /// <br/>)
+    /// </summary>
+    public const string GetMethodDefinitionFromMethodBaseThroughDynamicMethodDefinition = $"""
+        这样实际上是将参数, 返回类型, 所有的内部的语句全部
+        从 {nameof(MethodInfo)} 复制到了 {nameof(MethodDefinition)} 中,
+        需要一一解析, 实际很耗费时间
+        """;
+    #endregion
 }

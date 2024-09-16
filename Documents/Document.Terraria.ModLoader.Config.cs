@@ -84,7 +84,7 @@ public partial class Document {
             [DrawTicks]//对于滑动条, 是否在每个可选值上标上刻度(推荐在枚举值以及可选值不多的滑动条中使用)
             public int IntWithASlider;
 
-            [OptionStrings(new string[]{"One", "Two", "Three"})]//对于字符串类型, 固定它只能是这么几个值
+            [OptionStrings(["One", "Two", "Three"])]//对于字符串类型, 固定它只能是这么几个值
             public string StringWithStaticOptions = "One";
 
             [SeparatePage]//让此条显示为一个按钮, 点进去为单独的一页来设置此条(好像类默认就是采用的这个)
@@ -212,7 +212,7 @@ public partial class Document {
             /// </summary>
 		    [JsonExtensionData]
             [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:添加只读修饰符", Justification = "<挂起>")]
-            private IDictionary<string, JToken> _additionalData = new Dictionary<string, JToken>();
+            private Dictionary<string, JToken> _additionalData = [];
 
             //假如原本有一个OldListOfInts, 但是改名为了NewListOfInts
             public List<int> NewListOfInts;

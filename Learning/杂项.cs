@@ -51,7 +51,7 @@ public class 杂项 {
     /// <summary>
     /// 像得到某样东西的ID, 通过ID得到名字等
     /// </summary>
-    public static class 查找 {
+    public class 查找 {
         public static void ShowFindings() {
             #region params
             string modTypeFullName = default;

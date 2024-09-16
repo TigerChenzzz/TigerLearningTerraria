@@ -17,6 +17,7 @@ using System.IO;
 namespace TigerLearning;
 
 public class TigerLearning : Mod {
+    public static Catalogue 目录;
     public static TigerLearning Instance { get; private set; }
     public override void Load() {
         Instance = this;
