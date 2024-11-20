@@ -3,154 +3,16 @@
 namespace TigerLearning.Documents;
 
 public partial class Document {
-    public class Mod_cls {
-        public static Mod mod;
-        public const string intro = "一个mod需要有一个且仅一个继承自此类的类";
-        public const string postSetupContent_func = "重写PostSetupContent()以在PostSetup阶段做一些事情(此时各种数组的大小已经设置好了)";
-        public const string unload_func = "重写Unload()以在卸载此模组时做一些事情";
-    }
-    public class ModType_cls {
-        public static ModType modType;
-        public abstract class DocumentModType : ModType {
-            public void ShowModType() {
-                Show(Mod);               //获得本MOD
-                Show(Name);              //内部名字
-                Show(FullName);          //包含mod名的全名, mod名和物品名似乎是以 '/' 划分
-                Show(PrettyPrintName()); //展示一个好看的名字(暂不清楚效果)
-            }
-            /// <summary>
-            /// 若返回false则这个东西不会被加载(默认true)
-            /// 常用于联动内容, 或配置某样东西会不会产生(此时若改变此配置应强行要求重载)
-            /// </summary>
-            public override bool IsLoadingEnabled(Mod mod) => true;
-            public override void Load() => base.Load(); //在加载时做一些事情
-            public override void SetStaticDefaults() => Dos();   //用以设置一些不会改变的数据
-            public override void Unload() => Dos();  //在卸载时做一些事情
-
-            #region idk
-            public override void SetupContent() => Dos();
-            protected override void InitTemplateInstance() => Dos();
-            protected override void Register() => Dos();
-            protected override void ValidateType() => Dos();
-            #endregion
-        }
-    }
-    public class ModItem_cls {
-        public static ModItem modItem;
-        /// <summary>
-        /// <see cref="ModType_cls"/>
-        /// </summary>
-        public static ModType 基类;
-        public const string intro = "继承自此类以添加一种物品";
-        public class DocumentModItem : ModItem {
-            public void ShowModItem() {
-                #region params
-                int itemId = 0;
-                #endregion
-                NewInstance(new Item());    //为item新建一个ModItem(但好像并不SetDefaults)
-                ItemLoader.GetItem(itemId);     //获取一个ModItem的模板, 不会关联Item, 不会SetDefaults, 不推荐实际使用, 不如用new Item(itemId).ModItem, 这里只是为了获得模板
-            }
-            public override void SetStaticDefaults() => Dos();   //重写SetStaticDefaults()以在初始化完成后做一些事情
-            public override void SetDefaults() => Dos(); //重写SetDefaults()以在进入游戏时以及创建一个物品时为这个物品做一些事情
-            public override void AddRecipes() => Dos();  //重写AddRecipes()以在添加配方阶段做一些事情(一般是添加配方)
-            public static Recipe_cls recipe_cls;
-            /// <summary>
-            /// 重写ModifyShootStats(...)以修改伤害与发射位置等等
-            /// </summary>
-            public override void ModifyShootStats(Player player, ref Vector2 position, ref Vector2 velocity, ref int type, ref int damage, ref float knockback) => Dos();
-            public override void ExtractinatorUse(int extractinatorBlockType, ref int resultType, ref int resultStack) => Dos();  //自定义提炼机使用
-        }
-    }
-    public class ModProjectile_cls {
-        public static ModProjectile modProjectile;
-        public static void SetAIToVanillaStyle() {
-            //与原版木箭完全一样的AI
-            modProjectile.AIType = ProjectileID.WoodenArrowFriendly;
-            modProjectile.Projectile.aiStyle = ProjAIStyleID.Arrow;
-        }
-    }
-    public class ModTile_cls {
-        public static ModTile modTile;
-        public const string intro = "继承自此类以添加一类物块";
-        public const string setStaticDefaults_func = "重写SetStaticDefaults()以在初始化完成后做一些事情";
-        public const string addMapEntry_func = "在SetStaticDefaults()中使用AddMapEntry(Color, name = null)以在地图中添加显示, name可使用Language.GetText(path)";
-        public const string drop_func = "重写bool Drop(i, j)以改写其掉落, 目前仅对1x1物块生效, 返回true以掉落默认掉落的物品, 可以使用Item.NewItem(...)以手动添加掉落";
-        public const string killMultiTile_func = "重写KillMultiTile(i, j, frameX, frameY)以定义在多个联和的块被摧毁时干的事情(只执行一次, 可用以生成掉落物)";
-        public const string numDust_func = "重写NumDust(i, j, fail, ref num)以改写敲物块时发出的粒子数";
-        public const string createDust_func = "重写bool CreateDust(i, j, ref type)以修改在敲击物块时发出粒子的类型, 返回false使不发出默认粒子";
-        public const string rightClick_func = "重写bool RightClick(int i, int j)以设置是否可以右键点击(?)";
-        public static void ShowModTile() {
-            Show(modTile.MineResist);
-            Show(modTile.MinPick);
-        }
-    }
-    public class ModBlockType_cls {
-        public static ModBlockType modBlockType;
-        public const string intro = "ModTile 和 ModWall的基类";
-        public static void ShowModBlockType() {
-            Show(modBlockType.DustType);        //物块被击打时发出的粒子
-#if Terraria143
-            Show(modBlockType.ItemDrop);        //物块被打掉时掉落的物品, 默认0代表什么都不掉
-#endif
-        }
-    }
-    public class ModSystem_cls {
-        public static ModSystem modSystem;
-        public const string intro = "额外的系统";
-        public class ExampleModSystem : ModSystem {
-            /// <summary>
-            /// <br/>重写以在加载阶段做一些事情
-            /// <br/>此时不能保证Mod本身已加载完成
-            /// <br/>如果要使用Mod, 则需在<see cref="OnModLoad"/>中完成
-            /// </summary>
-            public override void Load() {
-                base.Load();
-            }
-            /// <summary>
-            /// <br/>在<see cref="Mod.Load"/>完成后立即执行
-            /// <br/>这样可以保证Mod已存在, 且已加载
-            /// </summary>
-            public override void OnModLoad() {
-                base.OnModLoad();
-            }
-            /// <summary>
-            /// <br/>保存世界数据
-            /// <br/>提供的<paramref name="tag"/>总是没有内容的(但不是null)
-            /// <br/>在<paramref name="tag"/>中写入数据
-            /// <br/>需和<see cref="LoadWorldData"/>一起重写
-            /// </summary>
-            public override void SaveWorldData(TagCompound tag) {
-                tag.SetWithDefault("data", 1);
-            }
-            /// <summary>
-            /// <br/>读取世界数据
-            /// <br/>tag一般为在<see cref="SaveWorldData"/>中保存的数据
-            /// <br/>也有可能是没有内容的(不是null)(在还没保存时)
-            /// <br/>需和<see cref="SaveWorldData"/>一起重写
-            /// </summary>
-            public override void LoadWorldData(TagCompound tag) {
-                tag.GetWithDefault<int>("data", out _);
-            }
-        }
-    }
-    public class ModPlayer_cls {
-        public static ModPlayer modPlayer;
-        public const string intro = "继承自此mod以改写人物";
-        public const string kill_func = "重写Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)以在死亡时做一些事情";
-        public const string save_func = "重写TagCompound Save()以保存数据";
-        public const string load_func = "重写Load(TagCompound tag)以在加载时做一些事并获取保存的数据";
-
-    }
-    public class GlobalType_cls {
-#if Terraria143
-        public static GlobalType globalType;
-#else
-        public static GlobalType<GlobalItem> globalType;
-#endif
-        public const string appliesToEntity_func = """
-            重写AppliesToEntity(entity, bool lateInstiation)来判断是否给对应物品附加上此类
-            lateInstiation表示是否在SetDefaults之后检查, 若需要SetDefaults做出更改, 则需只在lateInstiation为真时返回真
-            """;
+    public class AutoloadAttribute_attr {
+        public static AutoloadAttribute autoloadAttr;
+        [Autoload(Side = ModSide.Both)]
+        public class ExampleModSystemThatAutoloadOnBothSide : ModSystem { }
+        [Autoload(Side = ModSide.Client)]
+        public class ExampleModSystemThatAutoloadOnClientSide : ModSystem { }
+        [Autoload(Side = ModSide.Server)]
+        public class ExampleModSystemThatAutoloadOnServerSide : ModSystem { }
+        [Autoload(false)]
+        public class ExampleModSystemThatDontAutoload : ModSystem { }
     }
     public class GlobalItem_cls {
         public static GlobalItem globalItem;
@@ -237,9 +99,158 @@ public partial class Document {
             #endregion
         }
     }
+    public class GlobalType_cls {
+#if Terraria143
+        public static GlobalType globalType;
+#else
+        public static GlobalType<GlobalItem> globalType;
+#endif
+        public const string appliesToEntity_func = """
+            重写AppliesToEntity(entity, bool lateInstiation)来判断是否给对应物品附加上此类
+            lateInstiation表示是否在SetDefaults之后检查, 若需要SetDefaults做出更改, 则需只在lateInstiation为真时返回真
+            """;
+    }
     public class ItemLoader_cls {
         public static void ShowItemLoader() {
             Show(ItemLoader.ItemCount);
+        }
+    }
+    public class Mod_cls {
+        public static Mod mod;
+        public const string intro = "一个mod需要有一个且仅一个继承自此类的类";
+        public const string postSetupContent_func = "重写PostSetupContent()以在PostSetup阶段做一些事情(此时各种数组的大小已经设置好了)";
+        public const string unload_func = "重写Unload()以在卸载此模组时做一些事情";
+    }
+    public class ModBlockType_cls {
+        public static ModBlockType modBlockType;
+        public const string intro = "ModTile 和 ModWall的基类";
+        public static void ShowModBlockType() {
+            Show(modBlockType.DustType);        //物块被击打时发出的粒子
+#if Terraria143
+            Show(modBlockType.ItemDrop);        //物块被打掉时掉落的物品, 默认0代表什么都不掉
+#endif
+        }
+    }
+    public class ModItem_cls {
+        public static ModItem modItem;
+        /// <summary>
+        /// <see cref="ModType_cls"/>
+        /// </summary>
+        public static ModType 基类;
+        public const string intro = "继承自此类以添加一种物品";
+        public class DocumentModItem : ModItem {
+            public void ShowModItem() {
+                #region params
+                int itemId = 0;
+                #endregion
+                NewInstance(new Item());    //为item新建一个ModItem(但好像并不SetDefaults)
+                ItemLoader.GetItem(itemId);     //获取一个ModItem的模板, 不会关联Item, 不会SetDefaults, 不推荐实际使用, 不如用new Item(itemId).ModItem, 这里只是为了获得模板
+            }
+            public override void SetStaticDefaults() => Dos();   //重写SetStaticDefaults()以在初始化完成后做一些事情
+            public override void SetDefaults() => Dos(); //重写SetDefaults()以在进入游戏时以及创建一个物品时为这个物品做一些事情
+            public override void AddRecipes() => Dos();  //重写AddRecipes()以在添加配方阶段做一些事情(一般是添加配方)
+            public static Recipe_cls recipe_cls;
+            /// <summary>
+            /// 重写ModifyShootStats(...)以修改伤害与发射位置等等
+            /// </summary>
+            public override void ModifyShootStats(Player player, ref Vector2 position, ref Vector2 velocity, ref int type, ref int damage, ref float knockback) => Dos();
+            public override void ExtractinatorUse(int extractinatorBlockType, ref int resultType, ref int resultStack) => Dos();  //自定义提炼机使用
+        }
+    }
+    public class ModPlayer_cls {
+        public static ModPlayer modPlayer;
+        public const string intro = "继承自此mod以改写人物";
+        public const string kill_func = "重写Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)以在死亡时做一些事情";
+        public const string save_func = "重写TagCompound Save()以保存数据";
+        public const string load_func = "重写Load(TagCompound tag)以在加载时做一些事并获取保存的数据";
+
+    }
+    public class ModProjectile_cls {
+        public static ModProjectile modProjectile;
+        public static void SetAIToVanillaStyle() {
+            //与原版木箭完全一样的AI
+            modProjectile.AIType = ProjectileID.WoodenArrowFriendly;
+            modProjectile.Projectile.aiStyle = ProjAIStyleID.Arrow;
+        }
+    }
+    public class ModSystem_cls {
+        public static ModSystem modSystem;
+        public const string intro = "额外的系统";
+        public class ExampleModSystem : ModSystem {
+            /// <summary>
+            /// <br/>重写以在加载阶段做一些事情
+            /// <br/>此时不能保证Mod本身已加载完成
+            /// <br/>如果要使用Mod, 则需在<see cref="OnModLoad"/>中完成
+            /// </summary>
+            public override void Load() {
+                base.Load();
+            }
+            /// <summary>
+            /// <br/>在<see cref="Mod.Load"/>完成后立即执行
+            /// <br/>这样可以保证Mod已存在, 且已加载
+            /// </summary>
+            public override void OnModLoad() {
+                base.OnModLoad();
+            }
+            /// <summary>
+            /// <br/>保存世界数据
+            /// <br/>提供的<paramref name="tag"/>总是没有内容的(但不是null)
+            /// <br/>在<paramref name="tag"/>中写入数据
+            /// <br/>需和<see cref="LoadWorldData"/>一起重写
+            /// </summary>
+            public override void SaveWorldData(TagCompound tag) {
+                tag.SetWithDefault("data", 1);
+            }
+            /// <summary>
+            /// <br/>读取世界数据
+            /// <br/>tag一般为在<see cref="SaveWorldData"/>中保存的数据
+            /// <br/>也有可能是没有内容的(不是null)(在还没保存时)
+            /// <br/>需和<see cref="SaveWorldData"/>一起重写
+            /// </summary>
+            public override void LoadWorldData(TagCompound tag) {
+                tag.GetWithDefault<int>("data", out _);
+            }
+        }
+    }
+    public class ModType_cls {
+        public static ModType modType;
+        public abstract class DocumentModType : ModType {
+            public void ShowModType() {
+                Show(Mod);               //获得本MOD
+                Show(Name);              //内部名字
+                Show(FullName);          //包含mod名的全名, mod名和物品名似乎是以 '/' 划分
+                Show(PrettyPrintName()); //展示一个好看的名字(暂不清楚效果)
+            }
+            /// <summary>
+            /// 若返回false则这个东西不会被加载(默认true)
+            /// 常用于联动内容, 或配置某样东西会不会产生(此时若改变此配置应强行要求重载)
+            /// </summary>
+            public override bool IsLoadingEnabled(Mod mod) => true;
+            public override void Load() => base.Load(); //在加载时做一些事情
+            public override void SetStaticDefaults() => Dos();   //用以设置一些不会改变的数据
+            public override void Unload() => Dos();  //在卸载时做一些事情
+
+            #region idk
+            public override void SetupContent() => Dos();
+            public override void InitTemplateInstance() => Dos(); // 原 protected
+            public override void Register() => Dos(); // 原 protected
+            public override void ValidateType() => Dos(); // 原 protected
+            #endregion
+        }
+    }
+    public class ModTile_cls {
+        public static ModTile modTile;
+        public const string intro = "继承自此类以添加一类物块";
+        public const string setStaticDefaults_func = "重写SetStaticDefaults()以在初始化完成后做一些事情";
+        public const string addMapEntry_func = "在SetStaticDefaults()中使用AddMapEntry(Color, name = null)以在地图中添加显示, name可使用Language.GetText(path)";
+        public const string drop_func = "重写bool Drop(i, j)以改写其掉落, 目前仅对1x1物块生效, 返回true以掉落默认掉落的物品, 可以使用Item.NewItem(...)以手动添加掉落";
+        public const string killMultiTile_func = "重写KillMultiTile(i, j, frameX, frameY)以定义在多个联和的块被摧毁时干的事情(只执行一次, 可用以生成掉落物)";
+        public const string numDust_func = "重写NumDust(i, j, fail, ref num)以改写敲物块时发出的粒子数";
+        public const string createDust_func = "重写bool CreateDust(i, j, ref type)以修改在敲击物块时发出粒子的类型, 返回false使不发出默认粒子";
+        public const string rightClick_func = "重写bool RightClick(int i, int j)以设置是否可以右键点击(?)";
+        public static void ShowModTile() {
+            Show(modTile.MineResist);
+            Show(modTile.MinPick);
         }
     }
     public class NPCShop_cls {
@@ -278,16 +289,5 @@ public partial class Document {
 
             npcShop.Register();     //将此商店注册到对应NPC上, 这样它才真的有这个商店
         }
-    }
-    public class AutoloadAttribute_attr {
-        public static AutoloadAttribute autoloadAttr;
-        [Autoload(Side = ModSide.Both)]
-        public class ExampleModSystemThatAutoloadOnBothSide : ModSystem { }
-        [Autoload(Side = ModSide.Client)]
-        public class ExampleModSystemThatAutoloadOnClientSide : ModSystem { }
-        [Autoload(Side = ModSide.Server)]
-        public class ExampleModSystemThatAutoloadOnServerSide : ModSystem { }
-        [Autoload(false)]
-        public class ExampleModSystemThatDontAutoload : ModSystem { }
     }
 }

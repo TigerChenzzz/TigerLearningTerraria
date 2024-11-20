@@ -3,6 +3,16 @@
 namespace TigerLearning.Documents;
 
 public partial class Document {
+    public class AmmoID_cls {
+        public static void ShowAmmoID() {
+            #region params
+            Item item = null;
+            ModItem modItem = null;
+            #endregion
+            item.useAmmo = AmmoID.Bullet;       //此物品以子弹作为弹药
+            item.ammo = AmmoID.Bullet;    //此物品为一种子弹
+        }
+    }
     public class ItemID_cls {
         public static void ShowItemID() {
             Show(ItemID.None);                  //获得一个原版物品的id
@@ -39,16 +49,6 @@ public partial class Document {
             Show(TileID.CrystalBall);
             #endregion
 
-        }
-    }
-    public class AmmoID_cls {
-        public static void ShowAmmoID() {
-            #region params
-            Item item = null;
-            ModItem modItem = null;
-            #endregion
-            item.useAmmo = AmmoID.Bullet;       //此物品以子弹作为弹药
-            item.ammo = AmmoID.Bullet;    //此物品为一种子弹
         }
     }
 }

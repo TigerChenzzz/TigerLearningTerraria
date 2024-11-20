@@ -254,6 +254,25 @@ public partial class Document {
     }
     #endregion
     #region namespace Mono.Cecil.Cil
+    public class Instruction_cls {
+        public static Instruction instruction;
+        public const string intro = """
+            代表一条语句
+            """;
+        public static void ShowInstruction() {
+            ILContext il = default;
+            var instrs = il.Instrs; 
+            Instruction instr = instrs[0];  
+            Show(instruction.Next);     //下一条语句
+            Show(instruction.Previous); //上一条语句
+            Show(instruction.OpCode);   //操作代码
+            Show(instruction.Operand);  //操作数(参数), 若没有则是null
+            Show(instruction.Offset);   //地址偏移, 一般不需要使用
+            #region 创建一条语句
+            Instruction.Create(OpCodes.Add);    //如操作符有参数则需额外传入此参数
+            #endregion
+        }
+    }
     public class OpCodes_static_cls {
         public const string tips = """
             在IL中压栈通常以ld开头, 出栈则以st开头
@@ -378,25 +397,6 @@ public partial class Document {
             #endregion
             Show(OpCodes.Ret);              //返回, 无参, 会检查栈, 若无返回值则栈需为空, 若有栈中应只有需要返回的值
             Show(OpCodes.Nop);              //空语句
-        }
-    }
-    public class Instruction_cls {
-        public static Instruction instruction;
-        public const string intro = """
-            代表一条语句
-            """;
-        public static void ShowInstruction() {
-            ILContext il = default;
-            var instrs = il.Instrs; 
-            Instruction instr = instrs[0];  
-            Show(instruction.Next);     //下一条语句
-            Show(instruction.Previous); //上一条语句
-            Show(instruction.OpCode);   //操作代码
-            Show(instruction.Operand);  //操作数(参数), 若没有则是null
-            Show(instruction.Offset);   //地址偏移, 一般不需要使用
-            #region 创建一条语句
-            Instruction.Create(OpCodes.Add);    //如操作符有参数则需额外传入此参数
-            #endregion
         }
     }
     #endregion
