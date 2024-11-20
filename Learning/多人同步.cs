@@ -27,7 +27,7 @@ public class 多人同步 {
         Player player = null;
         #endregion
         /*
-        number: ChangeType, x, y, tileType, style
+        number: ChangeType, x, y, tileType, style (byte, short, short, short, byte)
         ChangeType WorldGen.{
             KillTile = 0, PlaceTile = 1, KillWall = 2, PlaceWall = 3, KillTileNoItem = 4,
             PlaceWire = 5, KillWire = 6, PoundTile = 7, PlaceActuator = 8, KillActuator = 9
@@ -55,5 +55,8 @@ public class 多人同步 {
         if(WorldGen.PlaceTile(i, j, tileType, mute: false, forced: false, plr: -1, style)) {  //若forced为false则在对应位置有物块时不会放置且返回false
             NetMessage.SendData(MessageID.TileManipulation, -1, -1, null, 1, i, j, tileType, style);
         }
+
+        // ???
+        NetMessage.SendTileSquare(-1, i, j);
     }
 }

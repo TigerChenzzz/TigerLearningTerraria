@@ -19,4 +19,7 @@ public class 本地化的一些东西 {
             当有 是本地化文件的 .hjson 文件 变化时会启用一个 60 帧计时器, 并暂存变化了的文件, 当此计时器正好归零时它会
             调用 {nameof(LanguageManager.ReloadLanguage)} 以进行更新 (此逻辑见 {nameof(LocalizationLoader.Update)})
         """;
+    public const string ParentVal = """
+        在 hjson 中写 $parentVal 键以代表父节点的值 (不能迭代)
+        """;
 }

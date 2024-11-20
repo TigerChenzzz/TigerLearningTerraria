@@ -26,7 +26,7 @@ public class 源码下的基本文件 {
             homepage       : 这个Mod主页的链接, 如果有的话, 比如这里是教程官网
             hideCode       : 如果设为true, 你的源码以及编译好的dll就不会被TML抽取, 如果你不想被别人看到源码就设为true    默认FALSE
             hideResources  : 是否隐藏Mod中包含的资源文件, 比如贴图, 音乐文件等等, 不想被别人看见就设为true      默认FALSE
-            includeSource  : 是否把.cs源码文件也放入tmod文件中, 这样别人可以看见你写的所有源代码, 我这里设置的是允许。不想允许就设为false(make sure to  set hideCode to false).     默认FALSE
+            includeSource  : 是否把.cs源码文件也放入tmod文件中, 这样别人可以看见你写的所有源代码, 不想允许就设为false(make sure to  set hideCode to false).     默认FALSE
             buildIgnore    : 将Mod源码编译成tmod文件的时候, 哪些文件(夹)是不需要放进tmod文件的, 这样能减小tmod文件的大小。includeSource为false的时候自动会忽略.cs文件   默认build.txt, .gitattributes, .gitignore, .git/, .vs/, .idea/, bin/, obj/,  Thumbs.db
             includePDB     : 需不需要包括符号调试文件, 如果包含可以更多提供debug信息, 同时也允许使用VS进行Debug   默认FALSE
             side           : 这个Mod是客户端Mod还是服务器端Mod     默认Both

@@ -40,7 +40,8 @@ public class Catalogue {
     public static 多人同步 多人同步;
 
     #region 额外研究
-
+    public static 本地化的一些东西 本地化的一些东西;
+    public static 关于配置的一些东西 关于配置的一些东西;
     #region TML 无关
     public static 可空类型Nullable 可空类型Nullable;
     public static 原始字符串 原始字符串;

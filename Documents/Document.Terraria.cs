@@ -1,15 +1,15 @@
-﻿using ReLogic.OS;
-using System;
+﻿using Microsoft.Xna.Framework.Input;
+using ReLogic.OS;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Terraria.Audio;
 using Terraria.Cinematics;
 using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.GameContent;
+using Terraria.GameContent.Achievements;
+using Terraria.GameContent.Creative;
 using Terraria.GameContent.Events;
 using Terraria.GameContent.Liquid;
 using Terraria.GameContent.Skies;
@@ -18,14 +18,9 @@ using Terraria.GameInput;
 using Terraria.Graphics.Capture;
 using Terraria.Graphics.Effects;
 using Terraria.Graphics.Light;
+using Terraria.Graphics.Shaders;
 using Terraria.Initializers;
 using Terraria.UI;
-using Terraria.ID;
-using Terraria.Audio;
-using Microsoft.Xna.Framework.Input;
-using Terraria.GameContent.Achievements;
-using Terraria.GameContent.Creative;
-using Terraria.Graphics.Shaders;
 
 namespace TigerLearning.Documents;
 
@@ -193,7 +188,7 @@ public partial class Document {
                 DontStarveDarknessDamageDealer.Update(player);
             #endregion
 
-            #region 设置一些属性
+            #region 设置一些运动相关的属性
             player.maxFallSpeed = 10f;
             player.gravity = Player.defaultGravity;
             Player.jumpHeight = 15;
@@ -276,7 +271,7 @@ public partial class Document {
             }
             #endregion
 
-            #region 继续设置一些属性
+            #region 继续设置一些属性 (emoteTime, ghostDmg, lifeSteal)
             if (player.emoteTime > 0)
                 player.emoteTime--;
 
@@ -375,7 +370,7 @@ public partial class Document {
             if (playerOutOfRange)
                 return;
             #endregion
-            #region 更新头发染料的例子(UpdateHairDyeDust), 更新杂项的计时器(UpdateMiscCounter)
+            #region 更新头发染料的粒子(UpdateHairDyeDust), 更新杂项的计时器(UpdateMiscCounter)
             player.UpdateHairDyeDust();
             player.UpdateMiscCounter();
             #endregion
@@ -1100,7 +1095,7 @@ public partial class Document {
                 if (player.velocity.Y <= 0f)
                     player.fallStart2 = (int)(player.position.Y / 16f);
                 #endregion
-                #region 如果摔倒了地上 (velocity.Y == 0f)...
+                #region 如果摔到了地上 (velocity.Y == 0f)...
                 if (player.velocity.Y == 0f) {
                     #region 计算摔伤距离和已下落距离
                     int fallDeltaToHurtInTile = 25;
@@ -1162,7 +1157,7 @@ public partial class Document {
                 #endregion
             }
             #endregion
-            #region 非多人客户端下的箱子处理 (宝箱怪, 瓦斯陷阱, lastChest)
+            #region 非多人客户端下的箱子处理 (生成宝箱怪, 瓦斯陷阱, lastChest)
             if (Main.netMode != NetmodeID.MultiplayerClient) {
                 if (player.chest == -1 && player.lastChest >= 0 && Main.chest[player.lastChest] != null) {
                     int x = Main.chest[player.lastChest].x;
@@ -1650,7 +1645,7 @@ public partial class Document {
             }
             #endregion
             #endregion
-            #region 魔力病处理
+            #region 魔力病处理 (减少魔法伤害)
             if (player.manaSick)
                 player.magicDamage *= 1f - player.manaSickReduction;
             #endregion
@@ -1686,7 +1681,7 @@ public partial class Document {
 			*/
             #endregion
             #region 根据一些字段限制水平速度 (slowOgreSpit, dazed, slow, chilled, shieldRaised  -> moveSpeed, velocity.X)
-            if (player.slowOgreSpit) {
+            if (player.slowOgreSpit) { // 食人魔唾液
                 player.moveSpeed /= 3f;
                 if (player.velocity.Y == 0f && Math.Abs(player.velocity.X) > 1f)
                     player.velocity.X /= 2f;
