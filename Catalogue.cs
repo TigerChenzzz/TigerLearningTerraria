@@ -48,6 +48,7 @@ public class Catalogue {
     public static 传参用特性 传参用特性;
     public static 非托管类型 非托管类型;
     public static when关键字 when关键字;
+    public static 信号量 信号量;
     public static 额外研究杂项 额外研究杂项;
     #endregion
     #endregion

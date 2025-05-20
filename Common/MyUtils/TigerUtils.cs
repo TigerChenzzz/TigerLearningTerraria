@@ -565,6 +565,10 @@ static public partial class TigerUtils {
     /// <returns>false</returns>
     public static bool Do(Action action) => GetRight(action, false);
     /// <summary>
+    /// 什么也不做, 返回false
+    /// </summary>
+    public static bool DoNothing() => false;
+    /// <summary>
     /// 获得<paramref name="action"/>的返回值
     /// </summary>
     public static T Get<T>(Func<T> supplier) => supplier();
