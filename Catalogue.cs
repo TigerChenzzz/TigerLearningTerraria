@@ -42,6 +42,7 @@ public class Catalogue {
     #region 额外研究
     public static 本地化的一些东西 本地化的一些东西;
     public static 关于配置的一些东西 关于配置的一些东西;
+    public static Global相关内容的实现 Global相关内容的实现;
     #region TML 无关
     public static 可空类型Nullable 可空类型Nullable;
     public static 原始字符串 原始字符串;
@@ -49,6 +50,7 @@ public class Catalogue {
     public static 非托管类型 非托管类型;
     public static when关键字 when关键字;
     public static 信号量 信号量;
+    public static 动态加载程序集 动态加载程序集;
     public static 额外研究杂项 额外研究杂项;
     #endregion
     #endregion
