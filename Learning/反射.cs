@@ -1,6 +1,4 @@
-﻿using Mono.Cecil;
-using MonoMod.RuntimeDetour;
-using MonoMod.Utils;
+﻿using MonoMod.Utils;
 using System.Reflection;
 
 namespace TigerLearning.Learning;
@@ -164,21 +162,49 @@ public class 反射 {
         constructorInfo.CreateDelegate<Func<Main>>();
         #endregion
     }
+
     #region 额外研究
-    /// <summary>
-    /// <br/>从 <see cref="MethodBase"/> (包括 <see cref="MethodInfo"/>) 中获取 <see cref="MethodDefinition"/> 的方法
-    /// <br/>见 <see cref="DynamicMethodDefinition"/> 的私有方法 LoadFromMethod(...)
-    /// <br/>(
-    /// <br/><see cref="ILHook.Apply"/>
-    /// <br/><see cref="DetourManager.ManagedDetourState.AddILHook(DetourManager.SingleILHookState, bool)"/>
-    /// <br/><see cref="DetourManager.ManagedDetourState"/> 的私有方法 UpdateEndOfChain()
-    /// <br/><see cref="DynamicMethodDefinition"/> 的构造方法
-    /// <br/>)
-    /// </summary>
-    public const string GetMethodDefinitionFromMethodBaseThroughDynamicMethodDefinition = $"""
-        这样实际上是将参数, 返回类型, 所有的内部的语句全部
-        从 {nameof(MethodInfo)} 复制到了 {nameof(MethodDefinition)} 中,
-        需要一一解析, 实际很耗费时间
-        """;
+    #region DynamicData 获取, 设置, 添加字段
+    class TestClass {
+        private int _value;
+        public int Value {
+            get => _value;
+            set => SetValue(value);
+        }
+
+        private void SetValue(int value) => _value = Math.Max(_value, 0);
+    }
+
+    class TestStaticClass {
+        private static int _value;
+        public static int Value {
+            get => _value;
+            set => SetValue(value);
+        }
+
+        private static void SetValue(int value) => _value = Math.Max(_value, 0);
+    }
+
+    public static void DynamicData用法() {
+        TestClass instance = new();
+        DynamicData data = DynamicData.For(instance); // 将实例转为 DynamicData 对象
+        int value = data.Get<int>("_value"); // 获取字段
+        data.Set("_value", -100); // 设置字段
+        data.Invoke("SetValue", 66); // 调用方法
+
+        DynamicData staticData = new(typeof(TestStaticClass)); // 对于静态成员的处理
+
+        // 当指定成员不存在时非泛型和引用类型泛型的 Get 不会报错而只是返回 null, 值类型则是空引用异常
+        // 对于 Set 方法, 不存在时会将此成员粘附在实例上, 相当于添加字段, 可以用 Get 获取, 这在不同 mod 间会被共享
+
+        // ↓↓↓↓↓↓ TBT ↓↓↓↓↓↓
+        data.Get("notExists"); // -> null
+        data.Get<string>("notExists"); // -> null
+        data.Get<int>("notExists"); // -> throw NullReferenceException
+
+        data.Set("dataToAttach", 20); // 附着数据
+        data.Get<int>("dataToAttach"); // 随后可以获取
+    }
+    #endregion
     #endregion
 }

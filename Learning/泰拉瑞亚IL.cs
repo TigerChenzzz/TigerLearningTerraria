@@ -1,6 +1,8 @@
-﻿using Mono.Cecil.Cil;
+﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
+using MonoMod.Utils;
 using System.Linq;
 using System.Reflection;
 
@@ -282,4 +284,27 @@ public class 泰拉瑞亚IL {
         cursor.EmitLdloc(variable);
         cursor.EmitStloc(variable);
     }
+    
+    #region 从 DynamicMethod 获取 IL
+    /// <summary>
+    /// <br/>从 <see cref="MethodBase"/> (包括 <see cref="MethodInfo"/>) 中获取 <see cref="MethodDefinition"/> 的方法
+    /// <br/>见 <see cref="DynamicMethodDefinition"/> 的私有方法 LoadFromMethod(...)
+    /// <br/>(
+    /// <br/><see cref="ILHook.Apply"/>
+    /// <br/><see cref="DetourManager.ManagedDetourState.AddILHook(DetourManager.SingleILHookState, bool)"/>
+    /// <br/><see cref="DetourManager.ManagedDetourState"/> 的私有方法 UpdateEndOfChain()
+    /// <br/><see cref="DynamicMethodDefinition"/> 的构造方法
+    /// <br/>)
+    /// </summary>
+    public static void 通过DynamicMethodDefinition获取IL语句(MethodBase method) {
+        Show($"""
+        这样实际上是将参数, 返回类型, 所有的内部的语句全部
+        从 {nameof(MethodInfo)} 复制到了 {nameof(MethodDefinition)} 中,
+        需要一一解析, 实际很耗费时间
+        """);
+        DynamicMethodDefinition definition = new(method);
+        ILContext il = new(definition.Definition);
+        Mono.Collections.Generic.Collection<Instruction> instructions = il.Instrs;
+    }
+    #endregion
 }
