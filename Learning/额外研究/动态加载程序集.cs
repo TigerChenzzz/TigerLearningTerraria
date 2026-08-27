@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Terraria.ModLoader.Core;
 
-namespace TigerLearning.Learning;
+namespace TigerLearning.Learning.额外研究;
 
 public class 动态加载程序集 {
     public const string TML内相关内容 = $"""
