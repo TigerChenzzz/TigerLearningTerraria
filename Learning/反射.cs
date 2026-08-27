@@ -62,7 +62,7 @@ public class 反射 {
         //获得方法信息, 其中flags可省略, 但省略后只能获得公共方法,下同
         MethodInfo methodInfo = type.GetMethod("MethodName", flags);
         //通过传入Type数组可规定参数类型
-        type.GetMethod("DamageVar", flags, new[] { typeof(float), typeof(float) });
+        type.GetMethod("DamageVar", flags, [typeof(float), typeof(float)]);
         #region 获得参数信息
         //可以通过GetParameters获得参数的信息
         ParameterInfo[] parameterInfos = methodInfo.GetParameters();
@@ -80,7 +80,7 @@ public class 反射 {
         #region 属性或索引器
         //获得属性或索引器
         type.GetProperty("PropertyName", flags);
-        Type[] typeArray = new Type[] { typeof(int), typeof(int) };
+        Type[] typeArray = [typeof(int), typeof(int)];
         //通过传入一个type和一个type数组可指定索引器的返回类型和参数列表
         //flags可与其他null一起省略
         //省略flags的情况下返回类型也可省略
@@ -129,7 +129,7 @@ public class 反射 {
         //假设我们已经获得了一个方法信息
         MethodInfo methodInfo = default;
         //提前准备好参数
-        object[] parameters = new object[] { 1, false };
+        object[] parameters = [1, false];
         //调用
         methodInfo.Invoke(main, parameters);
         //若是使用ref或out传参的方法, 可以通过parameters数组获得改变后的值
