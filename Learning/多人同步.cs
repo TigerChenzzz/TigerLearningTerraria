@@ -1,4 +1,5 @@
-﻿using Terraria.DataStructures;
+﻿using System.IO;
+using Terraria.DataStructures;
 
 namespace TigerLearning.Learning;
 
@@ -58,5 +59,94 @@ public class 多人同步 {
 
         // ???
         NetMessage.SendTileSquare(-1, i, j);
+    }
+
+    #region ModPacket
+    public static void ShowModPacket() {
+        // 获取 ModPacket
+        ModPacket packet = ModInstance.GetPacket();
+
+        // 写入数据
+        packet.Write((byte)MessageTypes.ShowModPacket);
+        packet.Write(true);
+        packet.Write(20);
+        packet.Write7BitEncodedInt(777);
+
+        // 发包
+        int toClient = -1, ignoreClient = -1; // 默认值
+        packet.Send(toClient, ignoreClient);
+
+        // 发包到其他端后需要重载 Mod.HandlePacket 以处理此包
+        // 一般发 ModPacket 会首先额外写入一个 byte 代表包类型, 用枚举记录
+        // 然后在 Mod.HandlePacket 中读取这个包类型并做相应处理
+    }
+
+    // in Mod.HandlePacket
+    public static void HandlePacket(BinaryReader reader, int whoAmI) {
+        MessageTypes type = (MessageTypes)reader.ReadByte();
+        if (type == MessageTypes.ShowModPacket) {
+            reader.ReadBoolean();
+            reader.ReadInt32();
+            reader.Read7BitEncodedInt();
+        }
+        // ...
+
+        // 可以使用 switch 书写, 或者使用一个函数数组 List<Action<BinaryReader, int>> 处理
+    }
+    #endregion
+
+    #region ModPlayer 同步
+    public class NetSyncExampleModPlayer : ModPlayer {
+        public int IntValueToBeSync { get; set; }
+
+        /// <summary>
+        /// 主要用于新玩家加入时的玩家同步 (全量同步)
+        /// 包括将加入的玩家数据同步到服务器和其他客户端, 以及将其他客户端的玩家同步到正在加入的客户端
+        /// </summary>
+        /// <param name="toWho"></param>
+        /// <param name="fromWho"></param>
+        /// <param name="newPlayer">在当前客户端玩家加入游戏时为 <see langword="true"/></param>
+        public override void SyncPlayer(int toWho, int fromWho, bool newPlayer) {
+            Show((object)base.SyncPlayer);
+            SendPacketToSync(toWho, fromWho);
+        }
+        // 以下两个方法绑定, 需要同时重载
+
+        /// <summary>
+        /// <br/>TML 会在本地存一个副本 <see cref="Main.clientPlayer"/>
+        /// <br/>当尝试同步玩家时 (<see cref="Main.TrySyncingMyPlayer"/>)
+        /// <br/>会调用 <see cref="ModPlayer.SendClientChanges(ModPlayer)"/> 以发送需要的数据,
+        /// <br/>然后再使用 <see cref="ModPlayer.CopyClientState(ModPlayer)"/>
+        /// <br/>将需要的数据放入 <see cref="Main.clientPlayer"/> 中.
+        /// <br/>也就是说在 <see cref="ModPlayer.SendClientChanges(ModPlayer)"/> 中需要
+        /// <br/>将当前 <see cref="ModPlayer"/> 与参数内的上一次同步后的玩家做比较,
+        /// <br/>然后按需要自行发包同步
+        /// </summary>
+        public override void CopyClientState(ModPlayer targetCopy) {
+            Show((object)base.CopyClientState);
+            ((NetSyncExampleModPlayer)targetCopy).IntValueToBeSync = IntValueToBeSync;
+        }
+        public override void SendClientChanges(ModPlayer clientPlayer) {
+            Show((object)base.SendClientChanges);
+            if (((NetSyncExampleModPlayer)clientPlayer).IntValueToBeSync != IntValueToBeSync) {
+                SendPacketToSync();
+            }
+        }
+
+        /// <summary>
+        /// 使用发包以同步
+        /// </summary>
+        private static void SendPacketToSync(int toClient = -1, int ignoreClient = -1) {
+            ModPacket packet = ModInstance.GetPacket();
+            packet.Write((byte)MessageTypes.SyncNetSyncExampleModPlayer);
+            // packet.Write(...);
+            packet.Send(toClient, ignoreClient);
+        }
+    }
+    #endregion
+
+    public enum MessageTypes : byte {
+        ShowModPacket,
+        SyncNetSyncExampleModPlayer,
     }
 }
