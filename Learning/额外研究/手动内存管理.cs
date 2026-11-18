@@ -4,10 +4,11 @@ using System.Runtime.InteropServices;
 namespace TigerLearning.Learning.额外研究;
 
 public class 手动内存管理 {
-    public static unsafe void ShowHAlloc() {
+    public static void ShowHAlloc() {
         #region 申请
         int size = 2000;
         nint buffer = Marshal.AllocHGlobal(size); // 分配 size 字节数的内存, 返回其指针
+        // 指针直接指向数据开头, 此片段内存的元数据在指针前
         #endregion
         #region 写入
         {
@@ -17,6 +18,7 @@ public class 手动内存管理 {
             short shortVal = 13;
             int intVal = 14;
             long longVal = 15;
+            float floatVal = 0.3f;
             nint nintValue = 16;
             Marshal.WriteByte(buffer, ofs, byteVal); // 在指针偏移 20 字节处写入一个 byte, 与下面那行等价
             Marshal.WriteByte(buffer + ofs, byteVal);
@@ -24,6 +26,7 @@ public class 手动内存管理 {
             Marshal.WriteInt16(buffer, shortVal);
             Marshal.WriteInt32(buffer, intVal);
             Marshal.WriteInt64(buffer, longVal);
+            Marshal.StructureToPtr(floatVal, buffer, false);
             Marshal.WriteIntPtr(buffer, nintValue); // 写入指针, 32 位为 4 字节, 64 位为 8 字节, 通过 IntPtr.Size 获取
             Show(IntPtr.Size); // 32 位为 4, 64 位为 8
 
@@ -38,11 +41,16 @@ public class 手动内存管理 {
         {
             int ofs = 20;
             Marshal.ReadByte(buffer, ofs);
+            // 也可以直接解引用读取:
+            unsafe {
+                byte byteVal = *(byte*)buffer;
+            }
             Marshal.ReadByte(buffer + ofs);
             Marshal.ReadInt16(buffer);
             Marshal.ReadInt32(buffer);
             Marshal.ReadInt64(buffer);
             Marshal.ReadIntPtr(buffer);
+            Marshal.PtrToStructure<float>(buffer);
             Marshal.PtrToStructure<SomeStruct>(buffer);
         }
         #endregion

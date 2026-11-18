@@ -82,6 +82,7 @@ public class 多人同步 {
     }
 
     // in Mod.HandlePacket
+    // whoAmI: 从哪个端接受到的包, 只在服务端有用, 客户端上此值始终为 255
     public static void HandlePacket(BinaryReader reader, int whoAmI) {
         MessageTypes type = (MessageTypes)reader.ReadByte();
         if (type == MessageTypes.ShowModPacket) {
@@ -97,6 +98,11 @@ public class 多人同步 {
 
     #region ModPlayer 同步
     public class NetSyncExampleModPlayer : ModPlayer {
+        public static readonly string References = """
+            https://github.com/tModLoader/tModLoader/wiki/Basic-Netcode
+            https://github.com/tModLoader/tModLoader/wiki/intermediate-netcode
+            """;
+
         public int IntValueToBeSync { get; set; }
 
         /// <summary>

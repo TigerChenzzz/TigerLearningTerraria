@@ -52,6 +52,7 @@ public class Catalogue {
     public static 信号量 信号量;
     public static 动态加载程序集 动态加载程序集;
     public static 手动内存管理 手动内存管理;
+    public static 关于Conditional 关于Conditional;
     public static 额外研究杂项 额外研究杂项;
     #endregion
     #endregion
